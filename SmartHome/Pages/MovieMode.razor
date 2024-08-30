@@ -1,0 +1,31 @@
+﻿@page "/movie-mode"
+@using SmartHome.Component
+@using SmartHome.Models
+@using SmartHome.Patterns.Facade
+@using SmartHome.Services
+@inject DeviceFactory DeviceFactory
+
+<h3>Movie Mode</h3>
+
+<button @onclick="StartMovieMode">Start MovieMode</button>
+
+@code {
+    private SmartHomeFacade _smartHomeFacade;
+
+    protected override void OnInitialized()
+    {
+        var tv = (TV)DeviceFactory.CreateDevice("TV");
+        var light = (Light)DeviceFactory.CreateDevice("Light");
+        var oldThermostat = new OldThermostat();
+        var thermostat = new OldThermostatAdapter(oldThermostat);
+        var curtain = new Curtain();
+        var musicPlayer = (MusicPlayer)DeviceFactory.CreateDevice("MusicPlayer");
+
+        _smartHomeFacade = new SmartHomeFacade(tv, light, thermostat, curtain, musicPlayer);
+    }
+
+    private void StartMovieMode()
+    {
+        _smartHomeFacade.StartMovieMode();
+    }
+}
