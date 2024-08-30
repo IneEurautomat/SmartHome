@@ -23,7 +23,41 @@ namespace SmartHome.Models
             State = new OffState();
             Console.WriteLine("TV is now off.");
         }
+        public void ChangeChannel()
+        {
+            if (State is OnState)
+            {
+                Console.WriteLine("Channel changed");
+            }
+            else
+            {
+                Console.WriteLine("TV must be on to change channels");
+            }
+        }
 
+        public void IncreaseVolume()
+        {
+            if (State is OnState)
+            {
+                Console.WriteLine("Volume increased");
+            }
+            else
+            {
+                Console.WriteLine("TV must be on to adjust volume");
+            }
+        }
+
+        public void DecreaseVolume()
+        {
+            if (State is OnState)
+            {
+                Console.WriteLine("Volume decreased");
+            }
+            else
+            {
+                Console.WriteLine("TV must be on to adjust volume");
+            }
+        }
         public void Mute()
         {
             State = new MuteState();

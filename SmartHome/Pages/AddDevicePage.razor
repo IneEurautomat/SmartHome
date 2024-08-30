@@ -1,0 +1,23 @@
+﻿@page "/add-device"
+
+<h2>Add New Device</h2>
+
+<div class="add-device-form">
+    <label for="deviceName">Device Name:</label>
+    <input id="deviceName" type="text" @bind="deviceName" />
+
+    <label for="deviceType">Device Type:</label>
+    <input id="deviceType" type="text" @bind="deviceType" />
+
+    <button @onclick="AddNewDevice">Add Device</button>
+</div>
+
+@code {
+    private string deviceName;
+    private string deviceType;
+
+    private void AddNewDevice()
+    {
+        // Add logic to create and register a new device
+    }
+}

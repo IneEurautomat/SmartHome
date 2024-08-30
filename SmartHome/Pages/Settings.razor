@@ -1,0 +1,41 @@
+﻿@page "/settings"
+@using SmartHome.Patterns.Facade
+@using SmartHome.Services
+@inject SmartHomeFacade SmartHomeFacade
+
+<h2>Global Settings</h2>
+
+<div class="settings">
+    <button @onclick="ActivateCozyEvening">Activate Cozy Evening</button>
+    <button @onclick="ActivatePartyMode">Activate Party Mode</button>
+    <button @onclick="ActivateNightMode">Activate Night Mode</button>
+    <button @onclick="ActivateDayMode">Activate Day Mode</button>
+    <button @onclick="ResetSettings">Reset Settings</button>
+</div>
+
+@code {
+    private void ActivateCozyEvening()
+    {
+        SmartHomeFacade.StartMovieMode();
+    }
+
+    private void ActivatePartyMode()
+    {
+        SmartHomeFacade.StartPartyMode();
+    }
+
+    private void ActivateNightMode()
+    {
+        SmartHomeFacade.StartNightMode();
+    }
+
+    private void ActivateDayMode()
+    {
+        SmartHomeFacade.StartDayMode();
+    }
+
+    private void ResetSettings()
+    {
+        SmartHomeFacade.ResetSettings();
+    }
+}

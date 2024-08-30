@@ -10,19 +10,15 @@
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/home-control">
-                <span class="oi oi-plus" aria-hidden="true"></span> Home Control
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/movie-mode">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Movie Mode
-            </NavLink>
+            <NavLink href="/" Match="NavLinkMatch.All">Home</NavLink>
+            <NavLink href="/light">Light</NavLink>
+            <NavLink href="/musicplayer">Music Player</NavLink>
+            <NavLink href="/tv">TV</NavLink>
+            <NavLink href="/thermostat">Thermostat</NavLink>
+            <NavLink href="/curtain">Curtain</NavLink>
+            <NavLink href="/settings">Settings</NavLink>
+            <NavLink href="/add-device">Add Device</NavLink>
+
         </div>
     </nav>
 </div>

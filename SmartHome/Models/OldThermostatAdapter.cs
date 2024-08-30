@@ -3,7 +3,7 @@
 //---------------------------------------------
 namespace SmartHome.Models
 {
-    public class OldThermostat
+    public class OldThermostat : IDevice
     {
         private int _currentTemperature = 18;
 
@@ -11,7 +11,15 @@ namespace SmartHome.Models
         {
             return _currentTemperature;
         }
+        public void On()
+        {
+            Console.WriteLine("Thermostat is On");
+        }
 
+        public void Off()
+        {
+            Console.WriteLine("Thermostat is Off");
+        }
         public void SetOldTemperature(int degrees)
         {
             // Logica om de oude thermostaat in te stellen
@@ -40,10 +48,18 @@ namespace SmartHome.Models
         {
             _oldThermostat = oldThermostat;
         }
+        public void On()
+        {
+            Console.WriteLine("Thermostat is On");
+        }
+
+        public void Off()
+        {
+            Console.WriteLine("Thermostat is Off");
+        }
 
         public void SetTemperature(int degrees)
         {
-            // Adapter gebruikt de oude thermostaat logica
             _oldThermostat.SetOldTemperature(degrees);
         }
 

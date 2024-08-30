@@ -1,0 +1,54 @@
+﻿@page "/thermostat"
+@inject DeviceFactory DeviceFactory
+@using SmartHome.Models
+@using SmartHome.Services
+@using SmartHome.Patterns.Observer;
+
+<h3>Thermostat Control</h3>
+
+<div class="device-control">
+    <div class="current-settings">
+        <h3>Current Thermostat Settings</h3>
+        <p>Current Temperature: @currentTemperature °C</p> <!-- Display current temperature -->
+    </div>
+    <div class="control-buttons">
+        <input type="number" @bind="temperature" />
+        <button @onclick="SetTemperature">Set Temperature</button>
+    </div>
+</div>
+
+@code {
+    private OldThermostatAdapter _thermostat;
+    private TemperatureMonitor _monitor;
+    private ThermostatDisplay _display;
+    private int temperature;
+    private int currentTemperature;
+
+
+    protected override void OnInitialized()
+    {
+        var oldThermostat = new OldThermostat();
+        _thermostat = new OldThermostatAdapter(oldThermostat);
+        _monitor = new TemperatureMonitor();
+        _display = new ThermostatDisplay(UpdateCurrentTemperature);
+
+        _monitor.RegisterObserver(_display);
+    }
+
+    private void SetTemperature()
+    {
+        _thermostat.SetTemperature(temperature);
+        UpdateTemperature(temperature);
+    }
+
+    private void UpdateTemperature(int temp)
+    {
+        _monitor.TemperatureChanged(temp);
+    }
+
+    private void UpdateCurrentTemperature(int newTemp)
+    {
+        currentTemperature = newTemp;
+        StateHasChanged(); // Ensure the UI updates when the temperature changes
+    }
+}

@@ -1,0 +1,73 @@
+﻿@page "/light"
+@using SmartHome.Models
+@using SmartHome.Services
+@inject DeviceFactory DeviceFactory
+
+<h2>Light Control</h2>
+
+<div class="device-control">
+    <div class="current-settings">
+        <h3>Current Light Settings</h3>
+        <img src="@GetLightImage()" alt="Light Status" class="light-image" />
+        <p>Current State: @GetLightState()</p>
+    </div>
+    <div class="control-buttons">
+        <button @onclick="TurnOn">Turn On</button>
+        <button @onclick="TurnOff">Turn Off</button>
+        <button @onclick="Dim">Dim</button>
+        <button @onclick="DiscoLights">Disco Lights</button>
+    </div>
+</div>
+
+@code {
+    private Light _light;
+
+    protected override void OnInitialized()
+    {
+        _light = (Light)DeviceFactory.CreateDevice("Light");
+    }
+
+    private void TurnOn()
+    {
+        _light.On();
+        StateHasChanged(); // Update the UI to reflect the change
+    }
+
+    private void TurnOff()
+    {
+        _light.Off();
+        StateHasChanged(); // Update the UI to reflect the change
+    }
+
+    private void Dim()
+    {
+        _light.Dim();
+        StateHasChanged(); // Update the UI to reflect the change
+    }
+
+    private void DiscoLights()
+    {
+        _light.DiscoLights();
+        StateHasChanged();
+    }
+
+    private string GetLightImage()
+    {
+        // Replace with actual logic to determine the light status
+        if (_light.IsDiscoMode)
+            return "images/light/discolight.png";
+        if (_light.IsDimmed)
+            return "images/light/dimmedlight.png";
+        return _light.IsOn ? "images/light/lighton.png" : "images/light/lightoff.png";
+    }
+
+    private string GetLightState()
+    {
+        // Replace with actual logic to determine the light state
+        if (_light.IsDiscoMode)
+            return "DiscoLights";
+        if (_light.IsDimmed)
+            return "Dimmed";
+        return _light.IsOn ? "On" : "Off";
+    }
+}

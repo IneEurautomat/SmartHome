@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using SmartHome.Component;
 using SmartHome.Models;
 using SmartHome.Patterns.Facade;
 using SmartHome.Services;
@@ -21,7 +20,6 @@ builder.Services.AddTransient<OldThermostat>();
 builder.Services.AddTransient<OldThermostatAdapter>();
 builder.Services.AddTransient<MusicPlayer>();
 builder.Services.AddTransient<Curtain>();
-builder.Services.AddSingleton<HomeMediator>();
 
 
 var app = builder.Build();

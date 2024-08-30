@@ -1,0 +1,36 @@
+﻿@page "/tv"
+@using SmartHome.Models
+@using SmartHome.Services
+@inject DeviceFactory DeviceFactory
+
+<h2>TV Control</h2>
+
+<div class="device-control">
+    <div class="current-settings">
+        <h3>Current TV Settings</h3>
+        <!-- Display current settings here -->
+    </div>
+    <div class="control-buttons">
+        <button @onclick="TurnOn">Turn On</button>
+        <button @onclick="TurnOff">Turn Off</button>
+        <button @onclick="ChangeChannel">Change Channel</button>
+        <button @onclick="IncreaseVolume">Increase Volume</button>
+        <button @onclick="DecreaseVolume">Decrease Volume</button>
+    </div>
+</div>
+
+@code {
+    private TV _tv;
+
+    protected override void OnInitialized()
+    {
+        _tv = (TV)DeviceFactory.CreateDevice("TV");
+    }
+
+    private void TurnOn() => _tv.On();
+    private void TurnOff() => _tv.Off();
+    private void ChangeChannel() => _tv.ChangeChannel();
+    private void IncreaseVolume() => _tv.IncreaseVolume();
+    private void DecreaseVolume() => _tv.DecreaseVolume();
+    private void Mute() => _tv.Mute();
+}

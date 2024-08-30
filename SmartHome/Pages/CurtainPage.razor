@@ -1,0 +1,33 @@
+﻿@page "/curtain"
+@using SmartHome.Models
+@using SmartHome.Services
+@inject DeviceFactory DeviceFactory
+
+<h2>Curtain Control</h2>
+
+<div class="device-control">
+    <div class="current-settings">
+        <h3>Current Curtain Settings</h3>
+        <!-- Display current settings here -->
+    </div>
+    <div class="control-buttons">
+        <button @onclick="Open">Open</button>
+        <button @onclick="Close">Close</button>
+        <button @onclick="On">Start</button>
+        <button @onclick="Off">Stop</button>
+    </div>
+</div>
+
+@code {
+    private Curtain _curtain;
+
+    protected override void OnInitialized()
+    {
+        _curtain = (Curtain)DeviceFactory.CreateDevice("Curtain");
+    }
+
+    private void Open() => _curtain.Open();
+    private void Close() => _curtain.Close();
+    private void On() => _curtain.On();
+    private void Off() => _curtain.Off();
+}

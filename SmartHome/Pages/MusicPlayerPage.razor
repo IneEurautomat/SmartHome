@@ -1,0 +1,74 @@
+﻿@page "/musicplayer"
+@using SmartHome.Models
+@using SmartHome.Services
+@inject DeviceFactory DeviceFactory
+
+<h2>Music Player Control</h2>
+
+<div class="device-control">
+    <div class="current-settings">
+        <h3>Current Music Player Settings</h3>
+        <img src="@GetMusicPlayerImage()" alt="Music Player Status" class="musicplayer-image" />
+        <p>Current State: @GetMusicPlayerState()</p>
+    </div>
+    <div class="control-buttons">
+        <button @onclick="Play">Play</button>
+        <button @onclick="Pause">Pause</button>
+        <button @onclick="Stop">Stop</button>
+        <button @onclick="IncreaseVolume">Increase Volume</button>
+        <button @onclick="DecreaseVolume">Decrease Volume</button>
+        <button @onclick="PlayPartylist">Play Partylist</button>
+    </div>
+</div>
+
+@code {
+    private MusicPlayer _musicPlayer;
+    private bool isPlaying = false;
+
+    protected override void OnInitialized()
+    {
+        _musicPlayer = (MusicPlayer)DeviceFactory.CreateDevice("MusicPlayer");
+    }
+
+    private void Play()
+    {
+        _musicPlayer.Play();
+        isPlaying = true;
+        StateHasChanged();
+    }
+
+    private void Pause()
+    {
+        _musicPlayer.Pause();
+        isPlaying = false;
+        StateHasChanged();
+    }
+
+    private void Stop()
+    {
+        _musicPlayer.Stop();
+        isPlaying = false;
+        StateHasChanged();
+    }
+
+    private void IncreaseVolume() => _musicPlayer.IncreaseVolume();
+
+    private void DecreaseVolume() => _musicPlayer.DecreaseVolume();
+
+    private void PlayPartylist()
+    {
+        _musicPlayer.PlayPartylist();
+        isPlaying = true;
+        StateHasChanged();
+    }
+
+    private string GetMusicPlayerImage()
+    {
+        return isPlaying ? "images/musicplayer/boombox-on.gif" : "images/musicplayer/boombox-off.png";
+    }
+
+    private string GetMusicPlayerState()
+    {
+        return isPlaying ? "Playing" : "Stopped or Paused";
+    }
+}
