@@ -17,8 +17,10 @@ namespace SmartHome.Models
 
         public void On()
         {
-            State.Handle(this);
+            State = new OnState();
             CurrentStatus = "on";
+
+            State.Handle(this);
             Console.WriteLine("TV is On");
         }
 

@@ -24,6 +24,7 @@
 @code {
     private MusicPlayer _musicPlayer;
     private bool isPlaying = false;
+    private bool volumeIsBeingSet = false;
 
     protected override void OnInitialized()
     {
@@ -51,9 +52,17 @@
         StateHasChanged();
     }
 
-    private void IncreaseVolume() => _musicPlayer.IncreaseVolume();
+    private void IncreaseVolume() 
+    {
+        _musicPlayer.IncreaseVolume();
+        StateHasChanged();
+    }
 
-    private void DecreaseVolume() => _musicPlayer.DecreaseVolume();
+    private void DecreaseVolume()
+    {
+        _musicPlayer.DecreaseVolume();
+        StateHasChanged();
+    }
 
     private void PlayPartylist()
     {

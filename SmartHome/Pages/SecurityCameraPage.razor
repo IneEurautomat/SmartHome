@@ -1,0 +1,36 @@
+﻿@page "/security"
+@using SmartHome.Models
+@using SmartHome.Patterns.Mediator
+@using SmartHome.Services
+@inject DeviceFactory DeviceFactory
+
+<h2>Security System</h2>
+
+<div>
+    <h3>Control Security Devices</h3>
+    <button @onclick="ActivateSensor">Activate Motion Sensor</button>
+    <button @onclick="DeactivateSensor">Deactivate Motion Sensor</button>
+</div>
+
+@code {
+    private SecurityCamera _camera;
+    private MotionSensor _sensor;
+    private SecurityMediator _mediator;
+
+    protected override void OnInitialized()
+    {
+        _camera = new SecurityCamera();
+        _sensor = new MotionSensor();
+        _mediator = new SecurityMediator(_camera, _sensor);
+    }
+
+    private void ActivateSensor()
+    {
+        _sensor.DetectMotion(); // Simuleert beweging detectie
+    }
+
+    private void DeactivateSensor()
+    {
+        _sensor.NoMotion(); // Simuleert het stoppen van beweging detectie
+    }
+}
