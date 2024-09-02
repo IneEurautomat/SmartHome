@@ -1,5 +1,6 @@
 ﻿@page "/tv"
 @using SmartHome.Models
+@using SmartHome.Patterns.Strategy
 @using SmartHome.Services
 @inject DeviceFactory DeviceFactory
 
@@ -8,7 +9,8 @@
 <div class="device-control">
     <div class="current-settings">
         <h3>Current TV Settings</h3>
-        <!-- Display current settings here -->
+        <img src="@currentImage" alt="TV-screen" class="mode-image" />
+        
     </div>
     <div class="control-buttons">
         <button @onclick="TurnOn">Turn On</button>
@@ -16,21 +18,119 @@
         <button @onclick="ChangeChannel">Change Channel</button>
         <button @onclick="IncreaseVolume">Increase Volume</button>
         <button @onclick="DecreaseVolume">Decrease Volume</button>
+        <button @onclick="Mute">Mute</button>
+    </div>
+    <div class="mode-selection">
+        <h3>Select Mode</h3>
+        <select @onchange="OnModeChange">
+            <option value="MovieMode">Movie Mode</option>
+            <option value="SportMode">Sport Mode</option>
+            <option value="NightMode">Night Mode</option>
+            <option value="MusicMode">Music Mode</option>
+        </select>
     </div>
 </div>
 
 @code {
     private TV _tv;
+    private string currentImage = "images/tv/tv-off.jpg";
 
     protected override void OnInitialized()
     {
         _tv = (TV)DeviceFactory.CreateDevice("TV");
+        UpdateStatusImage();
+        UpdateModeImage(); // Initialiseer met de huidige modus
+    }
+    private void TurnOn()
+    {
+        _tv.On();
+        UpdateStatusImage();
+        StateHasChanged(); // Update the UI to reflect the change
+
     }
 
-    private void TurnOn() => _tv.On();
-    private void TurnOff() => _tv.Off();
-    private void ChangeChannel() => _tv.ChangeChannel();
-    private void IncreaseVolume() => _tv.IncreaseVolume();
-    private void DecreaseVolume() => _tv.DecreaseVolume();
-    private void Mute() => _tv.Mute();
+    private void TurnOff()
+    {
+        _tv.Off();
+        UpdateStatusImage();
+        StateHasChanged(); // Update the UI to reflect the change
+
+    }
+
+    private void ChangeChannel()
+    {
+        _tv.ChangeChannel();
+        UpdateStatusImage();
+        StateHasChanged(); // Update the UI to reflect the change
+
+    }
+
+    private void IncreaseVolume()
+    {
+        _tv.IncreaseVolume();
+        UpdateStatusImage();
+        StateHasChanged(); // Update the UI to reflect the change
+
+    }
+
+    private void DecreaseVolume()
+    {
+        _tv.DecreaseVolume();
+        UpdateStatusImage();
+        StateHasChanged(); // Update the UI to reflect the change
+    }
+
+
+    private void Mute()
+    {
+        _tv.Mute();
+        UpdateStatusImage();
+        StateHasChanged(); // Update the UI to reflect the change
+    }
+
+    private void OnModeChange(ChangeEventArgs e)
+    {
+        var selectedMode = e.Value?.ToString();
+        IVolumeStrategy strategy = selectedMode switch
+        {
+            "MovieMode" => new MovieMode(),
+            "SportMode" => new SportMode(),
+            "NightMode" => new NightMode(),
+            "MusicMode" => new MusicMode(),
+            _ => throw new ArgumentException("Invalid mode")
+        };
+
+        _tv.SetVolumeStrategy(strategy);
+        UpdateModeImage();
+    }
+
+    private void UpdateModeImage()
+    {
+        var mode = _tv.GetCurrentMode();
+        currentImage = mode switch
+        {
+            "movie" => "images/tv/movie-strategy.png",
+            "sport" => "images/tv/sport-strategy.png",
+            "night" => "images/tv/night-strategy.png",
+            "music" => "images/tv/music-strategy.png",
+            _ => "images/tv/tv-off.jpg"
+        };
+        StateHasChanged(); // Update de UI
+    }
+    private void UpdateStatusImage()
+    {
+        var status = _tv.GetCurrentStatus();
+        currentImage = status switch
+        {
+            "on" => "images/tv/tv-on.png",
+            "off" => "images/tv/tv-off.jpg",
+            "changing-channel" => "images/tv/change-channel.gif",
+            "increase-volume" => "images/tv/increase-volume.png",
+            "decrease-volume" => "images/tv/decrease-volume.png",
+            "mute" => "images/tv/mute.png",
+            _ => "images/tv/tv-off.jpg"
+
+        };
+        StateHasChanged(); // Update de UI
+    }
 }

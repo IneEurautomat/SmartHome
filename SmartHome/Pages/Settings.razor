@@ -4,6 +4,11 @@
 @inject SmartHomeFacade SmartHomeFacade
 
 <h2>Global Settings</h2>
+<div class="current-settings">
+    <h3>Current Mode:</h3>
+    <img src="@currentModeImage" alt="Current Mode" class="mode-image" />
+</div>
+
 
 <div class="settings">
     <button @onclick="ActivateCozyEvening">Activate Cozy Evening</button>
@@ -14,28 +19,54 @@
 </div>
 
 @code {
+    private string currentModeImage = "images/settings/default.png";
+
+    private async Task UpdateModeImage()
+    {
+        var mode = SmartHomeFacade.GetCurrentMode();
+        currentModeImage = mode switch
+        {
+            "cozy-evening" => "images/settings/cozy-evening.png",
+            "party-mode" => "images/settings/party-mode.png",
+            "night-mode" => "images/settings/night-mode.png",
+            "day-mode" => "images/settings/day-mode.png",
+            _ => "images/settings/default.png",
+        };
+        StateHasChanged(); // Update de UI
+    }
+
     private void ActivateCozyEvening()
     {
         SmartHomeFacade.StartMovieMode();
+        UpdateModeImage();
     }
 
     private void ActivatePartyMode()
     {
         SmartHomeFacade.StartPartyMode();
+        UpdateModeImage();
     }
 
     private void ActivateNightMode()
     {
         SmartHomeFacade.StartNightMode();
+        UpdateModeImage();
     }
 
     private void ActivateDayMode()
     {
         SmartHomeFacade.StartDayMode();
+        UpdateModeImage();
     }
 
     private void ResetSettings()
     {
         SmartHomeFacade.ResetSettings();
+        UpdateModeImage();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateModeImage();
     }
 }
