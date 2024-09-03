@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Blazored.LocalStorage;
 using SmartHome.Models;
-using SmartHome.Patterns.Facade;
+using SmartHome.Patterns.Factory;
 using SmartHome.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +19,8 @@ builder.Services.AddTransient<OldThermostat>();
 builder.Services.AddTransient<OldThermostatAdapter>();
 builder.Services.AddTransient<MusicPlayer>();
 builder.Services.AddTransient<Curtain>();
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddSingleton<SmartHomeFacadeFactory>();
 
 
 var app = builder.Build();

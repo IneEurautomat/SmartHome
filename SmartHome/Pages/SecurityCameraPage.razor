@@ -3,34 +3,36 @@
 @using SmartHome.Patterns.Mediator
 @using SmartHome.Services
 @inject DeviceFactory DeviceFactory
+@inject IJSRuntime JSRuntime
+
 
 <h2>Security System</h2>
 
-<div>
-    <h3>Control Security Devices</h3>
-    <button @onclick="ActivateSensor">Activate Motion Sensor</button>
-    <button @onclick="DeactivateSensor">Deactivate Motion Sensor</button>
+<div class="camera-view">
+    <video id="securityFeed" width="600" autoplay loop muted>
+        <source src="videos/security-footage.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+<div class="sensor-control">
+    <button @onclick="StartRecording">Start Recording</button>
+    <button @onclick="StopRecording">Stop Recording</button>
+</div>
+
+<div class="recordings">
+    <h3>Recorded Segments</h3>
+    <div id="recordingsContainer"></div>
 </div>
 
 @code {
-    private SecurityCamera _camera;
-    private MotionSensor _sensor;
-    private SecurityMediator _mediator;
-
-    protected override void OnInitialized()
+    private async Task StartRecording()
     {
-        _camera = new SecurityCamera();
-        _sensor = new MotionSensor();
-        _mediator = new SecurityMediator(_camera, _sensor);
+        await JSRuntime.InvokeVoidAsync("startRecording");
     }
 
-    private void ActivateSensor()
+    private async Task StopRecording()
     {
-        _sensor.DetectMotion(); // Simuleert beweging detectie
-    }
-
-    private void DeactivateSensor()
-    {
-        _sensor.NoMotion(); // Simuleert het stoppen van beweging detectie
+        await JSRuntime.InvokeVoidAsync("stopRecording");
     }
 }

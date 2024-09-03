@@ -4,23 +4,12 @@ namespace SmartHome.Models
 {
     public class MotionSensor
     {
-        private IMediator _mediator;
+        public event Action OnMotionDetected;
 
-        public void SetMediator(IMediator mediator)
+        public void SimulateMotion()
         {
-            _mediator = mediator;
-        }
-
-        public void DetectMotion()
-        {
-            Console.WriteLine("Motion Sensor detects motion.");
-            _mediator?.Notify(this, "MotionDetected");
-        }
-
-        public void NoMotion()
-        {
-            Console.WriteLine("Motion Sensor detects no motion.");
-            _mediator?.Notify(this, "MotionStopped");
+            OnMotionDetected?.Invoke();
+            Console.WriteLine("Simulated motion detected!");
         }
     }
 }

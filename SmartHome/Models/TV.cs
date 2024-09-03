@@ -13,14 +13,15 @@ namespace SmartHome.Models
 
         public TV()
         {
+            // Default state can be off
+            State = new OffState();
         }
 
         public void On()
         {
             State = new OnState();
             CurrentStatus = "on";
-
-            State.Handle(this);
+            State.Handle(this);  // Handle state changes
             Console.WriteLine("TV is On");
         }
 
@@ -30,6 +31,7 @@ namespace SmartHome.Models
             CurrentStatus = "off";
             Console.WriteLine("TV is now off.");
         }
+
         public void ChangeChannel()
         {
             if (State is OnState)
@@ -49,7 +51,7 @@ namespace SmartHome.Models
             {
                 CurrentStatus = "increase-volume";
                 Console.WriteLine("Volume increased");
-                VolumeStrategy?.AdjustVolume(this); // Pas de volume-strategie toe
+                VolumeStrategy?.AdjustVolume(this); // Apply volume strategy
             }
             else
             {
@@ -62,15 +64,15 @@ namespace SmartHome.Models
             if (State is OnState)
             {
                 CurrentStatus = "decrease-volume";
-
                 Console.WriteLine("Volume decreased");
-                VolumeStrategy?.AdjustVolume(this); // Pas de volume-strategie toe
+                VolumeStrategy?.AdjustVolume(this); // Apply volume strategy
             }
             else
             {
                 Console.WriteLine("TV must be on to adjust volume");
             }
         }
+
         public void Mute()
         {
             State = new MuteState();
@@ -81,13 +83,15 @@ namespace SmartHome.Models
         public void SetVolumeStrategy(IVolumeStrategy strategy)
         {
             VolumeStrategy = strategy;
-            CurrentMode = strategy.GetType().Name.Replace("Mode", "").ToLower(); // Bijwerken van de modus
+            CurrentMode = strategy.GetType().Name.Replace("Mode", "").ToLower(); // Update mode
             Console.WriteLine($"Volume strategy set to {strategy.GetType().Name}");
         }
+
         public string GetCurrentMode()
         {
             return CurrentMode;
         }
+
         public string GetCurrentStatus()
         {
             return CurrentStatus;

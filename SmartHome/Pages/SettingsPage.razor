@@ -1,72 +1,246 @@
 ﻿@page "/settings"
-@using SmartHome.Patterns.Facade
+@using Blazored.LocalStorage
+@using Newtonsoft.Json.Linq
+@using SmartHome.Patterns.Factory
 @using SmartHome.Services
+@inject SmartHomeFacadeFactory SmartHomeFacadeFactory
+@inject ILocalStorageService localStorage
 @inject SmartHomeFacade SmartHomeFacade
 
 <h2>Global Settings</h2>
 <div class="current-settings">
-    <h3>Current Mode:</h3>
-    <img src="@currentModeImage" alt="Current Mode" class="mode-image" />
+	<h3>Current Settings:</h3>
+	<p>@currentSettings</p>
+	<img src="@currentModeImage" alt="Current Mode" class="mode-image" />
 </div>
 
-
 <div class="settings">
-    <button @onclick="ActivateCozyEvening">Activate Cozy Evening</button>
-    <button @onclick="ActivatePartyMode">Activate Party Mode</button>
-    <button @onclick="ActivateNightMode">Activate Night Mode</button>
-    <button @onclick="ActivateDayMode">Activate Day Mode</button>
-    <button @onclick="ResetSettings">Reset Settings</button>
+	<button @onclick="ActivateCozyEvening">Activate Cozy Evening</button>
+	<button @onclick="ActivatePartyMode">Activate Party Mode</button>
+	<button @onclick="ActivateNightMode">Activate Night Mode</button>
+	<button @onclick="ActivateDayMode">Activate Day Mode</button>
+	<button @onclick="ResetSettings">Reset Settings</button>
+	<button @onclick="SaveCurrentSettingsAsNewMode">Save Current Settings as New Mode</button>
+</div>
+
+<div>
+	<h3>Saved Modes:</h3>
+	@foreach (var mode in savedModes)
+	{
+		<button @onclick="() => ActivateCustomMode(mode.Key)">@mode.Key</button>
+	}
+</div>
+
+<!-- Custom Mode Section -->
+<div>
+	<h3>Create New Mode</h3>
+	<label>Mode Name:</label>
+	<input type="text" @bind="newModeName" placeholder="Enter mode name" />
+	<div>
+		<label>TV:</label>
+		<input type="checkbox" @bind="newModeTVOn" />
+	</div>
+	<div>
+		<label>Light:</label>
+		<input type="checkbox" @bind="newModeLightOn" />
+	</div>
+	<div>
+		<label>Temperature:</label>
+		<input type="number" @bind="newModeTemperature" min="10" max="30" />
+	</div>
+	<div>
+		<label>Curtain:</label>
+		<input type="checkbox" @bind="newModeCurtainClosed" />
+	</div>
+	<div>
+		<label>Music:</label>
+		<input type="checkbox" @bind="newModeMusicPlaying" />
+	</div>
+	<button @onclick="SaveNewMode">Save New Mode</button>
 </div>
 
 @code {
-    private string currentModeImage = "images/settings/default.png";
+	private string currentModeImage = "images/settings/default.png";
+	private string currentSettings = "Loading...";
+	private Dictionary<string, SmartHomeFacade> savedModes = new Dictionary<string, SmartHomeFacade>();
+	private string newModeName;
+	private bool newModeTVOn;
+	private bool newModeLightOn;
+	private int newModeTemperature = 20;
+	private bool newModeCurtainClosed;
+	private bool newModeMusicPlaying;
+	private SmartHomeFacade _smartHomeFacade;
 
-    private async Task UpdateModeImage()
-    {
-        var mode = SmartHomeFacade.GetCurrentMode();
-        currentModeImage = mode switch
-        {
-            "cozy-evening" => "images/settings/cozy-evening.png",
-            "party-mode" => "images/settings/party-mode.png",
-            "night-mode" => "images/settings/night-mode.png",
-            "day-mode" => "images/settings/day-mode.png",
-            _ => "images/settings/default.png",
-        };
-        StateHasChanged(); // Update de UI
-    }
 
-    private void ActivateCozyEvening()
-    {
-        SmartHomeFacade.StartMovieMode();
-        UpdateModeImage();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		_smartHomeFacade = SmartHomeFacadeFactory.CreateFacade(); // Use factory to create new facade
 
-    private void ActivatePartyMode()
-    {
-        SmartHomeFacade.StartPartyMode();
-        UpdateModeImage();
-    }
+		await LoadModesFromLocalStorage();
+		await UpdateModeImage();
+		await UpdateCurrentSettings();
+	}
 
-    private void ActivateNightMode()
-    {
-        SmartHomeFacade.StartNightMode();
-        UpdateModeImage();
-    }
+	private async Task LoadModesFromLocalStorage()
+	{
+		var savedModesJson = await localStorage.GetItemAsStringAsync("savedModes");
+		if (!string.IsNullOrEmpty(savedModesJson))
+		{
+			var deserializedModes = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(savedModesJson);
 
-    private void ActivateDayMode()
-    {
-        SmartHomeFacade.StartDayMode();
-        UpdateModeImage();
-    }
+			foreach (var mode in deserializedModes)
+			{
+				var prototypeFacade = SmartHomeFacadeFactory.CreateFacade(); // Use factory to create new instance
+				ApplySavedSettings(prototypeFacade, mode.Value);                            // Use modeData to set the state of smartHomeFacade
+				savedModes[mode.Key] = prototypeFacade;
+			}
+		}
+	}
+	private void ApplySavedSettings(SmartHomeFacade facade, Dictionary<string, object> settings)
+	{
+		// Controleer op sleutel bestaan en typcast waarden veilig
+		bool tvOn = settings.ContainsKey("TVOn") && settings["TVOn"] is bool ? (bool)settings["TVOn"] : false;
+		bool lightOn = settings.ContainsKey("LightOn") && settings["LightOn"] is bool ? (bool)settings["LightOn"] : false;
+		int temperature = settings.ContainsKey("Temperature") && settings["Temperature"] is int ? (int)settings["Temperature"] : 20;
+		bool curtainClosed = settings.ContainsKey("CurtainClosed") && settings["CurtainClosed"] is bool ? (bool)settings["CurtainClosed"] : true;
+		bool musicPlaying = settings.ContainsKey("MusicPlaying") && settings["MusicPlaying"] is bool ? (bool)settings["MusicPlaying"] : false;
 
-    private void ResetSettings()
-    {
-        SmartHomeFacade.ResetSettings();
-        UpdateModeImage();
-    }
+		facade.SetCustomMode(
+			facade.GetCurrentMode(),
+			tvOn,
+			lightOn,
+			temperature,
+			curtainClosed,
+			musicPlaying
+		);
+	}
 
-    protected override async Task OnInitializedAsync()
-    {
-        await UpdateModeImage();
-    }
+
+	private async Task SaveModesToLocalStorage()
+	{
+		var savedModesJson = Newtonsoft.Json.JsonConvert.SerializeObject(savedModes.ToDictionary(
+			kvp => kvp.Key,
+			kvp => new Dictionary<string, object>
+				{
+			{ "TVOn", kvp.Value.IsTVOn() },
+			{ "LightOn", kvp.Value.IsLightOn() },
+			{ "Temperature", kvp.Value.GetTemperature() },
+			{ "CurtainClosed", kvp.Value.IsCurtainClosed() },
+			{ "MusicPlaying", kvp.Value.IsMusicPlaying() }
+				}
+		));
+		await localStorage.SetItemAsStringAsync("savedModes", savedModesJson);
+	}
+
+
+
+	private async Task UpdateModeImage()
+	{
+		var mode = SmartHomeFacade.GetCurrentMode();
+		currentModeImage = mode switch
+		{
+			"cozy-evening" => "images/settings/cozy-evening.png",
+			"party-mode" => "images/settings/party-mode.png",
+			"night-mode" => "images/settings/night-mode.png",
+			"day-mode" => "images/settings/day-mode.png",
+			_ => "images/settings/default.png",
+		};
+	}
+
+	private async Task SaveNewMode()
+	{
+		if (string.IsNullOrWhiteSpace(newModeName))
+		{
+			// Handle empty mode name error
+			return;
+		}
+
+		var clonedFacade = _smartHomeFacade.Clone(); // Clone current state
+		savedModes[newModeName] = clonedFacade;
+
+		await SaveModesToLocalStorage();
+		newModeName = string.Empty;
+		StateHasChanged(); // Refresh the UI
+	}
+
+	private async Task ActivateCustomMode(string modeName)
+	{
+		if (savedModes.TryGetValue(modeName, out var customMode))
+		{
+			if (customMode != null)
+			{
+				SmartHomeFacade = customMode.Clone();
+				await UpdateModeImage();
+				await UpdateCurrentSettings();
+			}
+			else
+			{
+				// Handle the case where the customMode is null
+				currentSettings = "Error: Selected mode is not available.";
+			}
+		}
+		else
+		{
+			// Handle the case where modeName is not in savedModes
+			currentSettings = "Error: Mode not found.";
+		}
+	}
+
+
+	private async Task SaveCurrentSettingsAsNewMode()
+	{
+		string modeName = $"CustomMode{savedModes.Count + 1}";
+		var clonedMode = SmartHomeFacade.Clone();
+		savedModes[modeName] = clonedMode;
+		await SaveModesToLocalStorage(); // Save to local storage
+		await UpdateModeImage();
+		await UpdateCurrentSettings();
+	}
+
+	private async Task UpdateCurrentSettings()
+	{
+		try
+		{
+			currentSettings = SmartHomeFacade.GetCurrentSettings();
+		}
+		catch (Exception ex)
+		{
+			currentSettings = $"Error: {ex.Message}";
+		}
+	}
+
+	private async Task ActivateCozyEvening()
+	{
+		SmartHomeFacade.StartMovieMode();
+		await UpdateModeImage();
+		await UpdateCurrentSettings();
+	}
+
+	private async Task ActivatePartyMode()
+	{
+		SmartHomeFacade.StartPartyMode();
+		await UpdateModeImage();
+		await UpdateCurrentSettings();
+	}
+
+	private async Task ActivateNightMode()
+	{
+		SmartHomeFacade.StartNightMode();
+		await UpdateModeImage();
+		await UpdateCurrentSettings();
+	}
+
+	private async Task ActivateDayMode()
+	{
+		SmartHomeFacade.StartDayMode();
+		await UpdateModeImage();
+		await UpdateCurrentSettings();
+	}
+
+	private async Task ResetSettings()
+	{
+		SmartHomeFacade.ResetSettings();
+		await UpdateModeImage();
+		await UpdateCurrentSettings();
+	}
 }

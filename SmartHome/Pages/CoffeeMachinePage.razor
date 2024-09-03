@@ -1,0 +1,158 @@
+﻿@page "/coffeemachine"
+@using SmartHome.Models
+@using SmartHome.Patterns.Builder
+@using SmartHome.Patterns.Decorator
+@inject IJSRuntime JSRuntime
+
+<h3>Smart Coffee Machine</h3>
+
+<div>
+    <label>Coffee Type:</label>
+    <select value="@selectedCoffeeType" @onchange="UpdateSelectedCoffeeType">
+        <option value="Espresso">Espresso</option>
+        <option value="Latte">Latte</option>
+        <option value="Cappuccino">Cappuccino</option>
+        <option value="Americano">Americano</option>
+    </select>
+</div>
+
+<div>
+    <label>Strength:</label>
+    <select value="@selectedStrength" @onchange="UpdateSelectedStrength">
+        <option value="Mild">Mild</option>
+        <option value="Medium">Medium</option>
+        <option value="Strong">Strong</option>
+    </select>
+</div>
+
+<div>
+    <label>Water Amount (ml):</label>
+    <input type="number" value="@selectedWaterAmount" @onchange="UpdateSelectedWaterAmount" min="30" max="500" />
+</div>
+
+<div>
+    <button @onclick="BuildAndBrewCoffee">Brew Coffee</button>
+    <button @onclick="SetFavoriteSettings">Set Favorite Settings</button>
+    <button @onclick="EnableSelfCleaning">Enable Self-Cleaning</button>
+</div>
+
+<p>@message</p>
+
+<!-- Coffee Image Display -->
+@if (!string.IsNullOrEmpty(selectedCoffeeImage))
+{
+    <div>
+        <img src="@selectedCoffeeImage" alt="@selectedCoffeeType" style="width:400px;height:400px;" />
+    </div>
+}
+
+@code {
+    private string message = "Ready to brew coffee!";
+    private ICoffeeMachine coffeeMachine;
+
+    // Properties to bind user inputs
+    private string selectedCoffeeType = "Espresso";
+    private string selectedStrength = "Medium";
+    private int selectedWaterAmount = 50;
+    private string selectedCoffeeImage;
+
+    // Dictionary to map coffee types to images
+    private Dictionary<string, string> coffeeImages = new Dictionary<string, string>
+    {
+        { "Espresso", "images/coffeemachine/espresso.png" },
+        { "Latte", "images/coffeemachine/latte.png" },
+        { "Cappuccino", "images/coffeemachine/cappuccino.png" },
+        { "Americano", "images/coffeemachine/americano.png" }
+    };
+
+    protected override void OnInitialized()
+    {
+        // Initialize the selected coffee image
+        selectedCoffeeImage = coffeeImages[selectedCoffeeType];
+    }
+
+    private void UpdateSelectedCoffeeType(ChangeEventArgs e)
+    {
+        selectedCoffeeType = e.Value.ToString();
+        UpdateCoffeeImage();
+    }
+
+    private void UpdateSelectedStrength(ChangeEventArgs e)
+    {
+        selectedStrength = e.Value.ToString();
+    }
+
+    private void UpdateSelectedWaterAmount(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value.ToString(), out int amount))
+        {
+            selectedWaterAmount = amount;
+        }
+    }
+
+    private void UpdateCoffeeImage()
+    {
+        selectedCoffeeImage = coffeeImages[selectedCoffeeType];
+    }
+
+    private void BuildAndBrewCoffee()
+    {
+        // Build the coffee machine based on user input
+        var builder = new CoffeeMachineBuilder();
+        var basicMachine = builder.SetCoffeeType(selectedCoffeeType)
+                                  .SetStrength(selectedStrength)
+                                  .SetWaterAmount(selectedWaterAmount)
+                                  .Build();
+
+        // Apply decorators
+        var favoriteMachine = new FavoriteSettingsDecorator(basicMachine, $"{selectedCoffeeType}, {selectedStrength}, {selectedWaterAmount}ml");
+        coffeeMachine = new SelfCleaningDecorator(favoriteMachine);
+
+        // Brew coffee
+        coffeeMachine.BrewCoffee();
+        message = "Coffee is brewing...";
+    }
+
+    private bool TryGetFavoriteSettingsDecorator(ICoffeeMachine machine, out FavoriteSettingsDecorator favoriteDecorator)
+    {
+        if (machine is FavoriteSettingsDecorator decorator)
+        {
+            favoriteDecorator = decorator;
+            return true;
+        }
+
+        if (machine is CoffeeMachineDecorator decoratorBase)
+        {
+            return TryGetFavoriteSettingsDecorator(decoratorBase._coffeeMachine, out favoriteDecorator);
+        }
+
+        favoriteDecorator = null;
+        return false;
+    }
+
+    private void SetFavoriteSettings()
+    {
+        if (TryGetFavoriteSettingsDecorator(coffeeMachine, out var favoriteDecorator))
+        {
+            favoriteDecorator.SetFavoriteSettings($"{selectedCoffeeType}, {selectedStrength}, {selectedWaterAmount}ml");
+            message = "Favorite settings updated.";
+        }
+        else
+        {
+            message = "Cannot update favorite settings.";
+        }
+    }
+
+    private void EnableSelfCleaning()
+    {
+        if (coffeeMachine is SelfCleaningDecorator selfCleaningDecorator)
+        {
+            selfCleaningDecorator.Clean();
+            message = "Self-cleaning is enabled.";
+        }
+        else
+        {
+            message = "Self-cleaning not available.";
+        }
+    }
+}
