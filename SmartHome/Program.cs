@@ -19,6 +19,7 @@ builder.Services.AddTransient<OldThermostat>();
 builder.Services.AddTransient<OldThermostatAdapter>();
 builder.Services.AddTransient<MusicPlayer>();
 builder.Services.AddTransient<Curtain>();
+builder.Services.AddTransient<SecurityCamera>();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<SmartHomeFacadeFactory>();
 

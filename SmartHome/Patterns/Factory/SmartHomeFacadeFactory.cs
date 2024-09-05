@@ -9,6 +9,7 @@ namespace SmartHome.Patterns.Factory
 		private readonly OldThermostatAdapter _defaultThermostat;
 		private readonly Curtain _defaultCurtain;
 		private readonly MusicPlayer _defaultMusicPlayer;
+		private readonly SecurityCamera _defaultSecurityCamera;
 
 		public SmartHomeFacadeFactory()
 		{
@@ -19,11 +20,12 @@ namespace SmartHome.Patterns.Factory
 			_defaultThermostat = new OldThermostatAdapter(oldThermostat);
 			_defaultCurtain = new Curtain();
 			_defaultMusicPlayer = new MusicPlayer();
+			_defaultSecurityCamera = new SecurityCamera();
 		}
 
 		public SmartHomeFacade CreateFacade()
 		{
-			return new SmartHomeFacade(_defaultTV, _defaultLight, _defaultThermostat, _defaultCurtain, _defaultMusicPlayer);
+			return new SmartHomeFacade(_defaultTV, _defaultLight, _defaultThermostat, _defaultCurtain, _defaultMusicPlayer, _defaultSecurityCamera);
 		}
 	}
 

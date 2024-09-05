@@ -1,11 +1,14 @@
 ﻿@page "/settings"
 @using Blazored.LocalStorage
 @using Newtonsoft.Json.Linq
+@using SmartHome.Models
 @using SmartHome.Patterns.Factory
+@using SmartHome.Patterns.ChainOfResponsibility
 @using SmartHome.Services
 @inject SmartHomeFacadeFactory SmartHomeFacadeFactory
 @inject ILocalStorageService localStorage
 @inject SmartHomeFacade SmartHomeFacade
+@inject SmartHomeSettings SmartHomeSettings
 
 <h2>Global Settings</h2>
 <div class="current-settings">
@@ -69,6 +72,7 @@
 	private int newModeTemperature = 20;
 	private bool newModeCurtainClosed;
 	private bool newModeMusicPlaying;
+	private bool newModeSecurityOn;
 	private SmartHomeFacade _smartHomeFacade;
 
 
@@ -98,22 +102,19 @@
 	}
 	private void ApplySavedSettings(SmartHomeFacade facade, Dictionary<string, object> settings)
 	{
-		// Controleer op sleutel bestaan en typcast waarden veilig
-		bool tvOn = settings.ContainsKey("TVOn") && settings["TVOn"] is bool ? (bool)settings["TVOn"] : false;
-		bool lightOn = settings.ContainsKey("LightOn") && settings["LightOn"] is bool ? (bool)settings["LightOn"] : false;
-		int temperature = settings.ContainsKey("Temperature") && settings["Temperature"] is int ? (int)settings["Temperature"] : 20;
-		bool curtainClosed = settings.ContainsKey("CurtainClosed") && settings["CurtainClosed"] is bool ? (bool)settings["CurtainClosed"] : true;
-		bool musicPlaying = settings.ContainsKey("MusicPlaying") && settings["MusicPlaying"] is bool ? (bool)settings["MusicPlaying"] : false;
+		var smartHomeSettings = new SmartHomeSettings
+			{
+				TVOn = settings.ContainsKey("TVOn") && settings["TVOn"] is bool ? (bool)settings["TVOn"] : false,
+				LightOn = settings.ContainsKey("LightOn") && settings["LightOn"] is bool ? (bool)settings["LightOn"] : false,
+				Temperature = settings.ContainsKey("Temperature") && settings["Temperature"] is int ? (int)settings["Temperature"] : 20,
+				CurtainClosed = settings.ContainsKey("CurtainClosed") && settings["CurtainClosed"] is bool ? (bool)settings["CurtainClosed"] : true,
+				MusicPlaying = settings.ContainsKey("MusicPlaying") && settings["MusicPlaying"] is bool ? (bool)settings["MusicPlaying"] : false,
+				SecurityOn = settings.ContainsKey("SecurityOn") && settings["SecurityOn"] is bool ? (bool)settings["SecurityOn"] : true
+			};
 
-		facade.SetCustomMode(
-			facade.GetCurrentMode(),
-			tvOn,
-			lightOn,
-			temperature,
-			curtainClosed,
-			musicPlaying
-		);
+		facade.SetCustomMode(facade.GetCurrentMode(), smartHomeSettings);
 	}
+
 
 
 	private async Task SaveModesToLocalStorage()
@@ -155,12 +156,24 @@
 			return;
 		}
 
-		var clonedFacade = _smartHomeFacade.Clone(); // Clone current state
+		var settings = new SmartHomeSettings
+			{
+				TVOn = newModeTVOn,
+				LightOn = newModeLightOn,
+				Temperature = newModeTemperature,
+				CurtainClosed = newModeCurtainClosed,
+				MusicPlaying = newModeMusicPlaying,
+				SecurityOn = newModeSecurityOn
+			};
+
+		var clonedFacade = _smartHomeFacade.Clone();
+		clonedFacade.SetCustomMode(newModeName, settings); // Update with the new settings
+
 		savedModes[newModeName] = clonedFacade;
 
 		await SaveModesToLocalStorage();
 		newModeName = string.Empty;
-		StateHasChanged(); // Refresh the UI
+		StateHasChanged();
 	}
 
 	private async Task ActivateCustomMode(string modeName)

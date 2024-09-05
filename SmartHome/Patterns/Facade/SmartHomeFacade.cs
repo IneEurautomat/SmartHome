@@ -1,24 +1,45 @@
 ﻿using SmartHome.Models;
+using SmartHome.Patterns.ChainOfResponsibility;
 using SmartHome.Patterns.Prototype;
 
 public class SmartHomeFacade : IPrototype<SmartHomeFacade>
 {
-    private readonly TV _tv;
-    private readonly Light _light;
-    private readonly OldThermostatAdapter _thermostat;
-    private readonly Curtain _curtain;
-    private readonly MusicPlayer _musicPlayer;
+	private readonly TV _tv;
+	private readonly Light _light;
+	private readonly OldThermostatAdapter _thermostat;
+	private readonly Curtain _curtain;
+	private readonly MusicPlayer _musicPlayer;
+	private readonly SecurityCamera _securityCamera;
 
-    private string _currentMode;
+	private string _currentMode;
+	private DeviceHandler _handlerChain;
 
-    public SmartHomeFacade(TV tv, Light light, OldThermostatAdapter thermostat, Curtain curtain, MusicPlayer musicPlayer)
+	public SmartHomeFacade(TV tv, Light light, OldThermostatAdapter thermostat, Curtain curtain, MusicPlayer musicPlayer, SecurityCamera securityCamera)
     {
         _tv = tv;
         _light = light;
         _thermostat = thermostat;
         _curtain = curtain;
         _musicPlayer = musicPlayer;
-    }
+		_securityCamera = securityCamera;
+
+		// Stel de keten van handlers in
+		var tvHandler = new TVHandler(_tv);
+		var lightHandler = new LightHandler(_light);
+		var thermostatHandler = new ThermostatHandler(_thermostat);
+		var curtainHandler = new CurtainHandler(_curtain);
+		var musicPlayerHandler = new MusicPlayerHandler(_musicPlayer);
+		var securityHandler = new SecurityHandler(_securityCamera);
+
+		// Ketting van verantwoordelijkheid opzetten
+		tvHandler.SetNext(lightHandler);
+		lightHandler.SetNext(thermostatHandler);
+		thermostatHandler.SetNext(curtainHandler);
+		curtainHandler.SetNext(musicPlayerHandler);
+		musicPlayerHandler.SetNext(securityHandler);
+
+		_handlerChain = tvHandler;
+	}
 	public bool IsTVOn()
 	{
 		return _tv.GetCurrentStatus() == "On"; // Pas aan volgens hoe de status wordt geretourneerd
@@ -45,48 +66,85 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
 	}
 	public void StartMovieMode()
     {
-        _currentMode = "cozy-evening";
-        ApplySettings(true, true, 21, true, false);
-    }
+		_currentMode = "cozy-evening";
+		ApplySettings(new SmartHomeSettings
+		{
+			TVOn = true,
+			LightOn = true,
+			Temperature = 21,
+			CurtainClosed = true,
+			MusicPlaying = false,
+			SecurityOn = true
+		});
+	}
 
     public void StartPartyMode()
     {
-        _currentMode = "party-mode";
-        ApplySettings(true, true, 22, false, true);
-    }
+		_currentMode = "party-mode";
+		ApplySettings(new SmartHomeSettings
+		{
+			TVOn = true,
+			LightOn = true,
+			Temperature = 22,
+			CurtainClosed = false,
+			MusicPlaying = true,
+			SecurityOn = true
+		});
+	}
 
     public void StartNightMode()
     {
-        _currentMode = "night-mode";
-        ApplySettings(false, true, 18, true, false);
-    }
+		_currentMode = "night-mode";
+		ApplySettings(new SmartHomeSettings
+		{
+			TVOn = false,
+			LightOn = true,
+			Temperature = 18,
+			CurtainClosed = true,
+			MusicPlaying = false,
+			SecurityOn = true
+		});
+	}
 
     public void StartDayMode()
     {
-        _currentMode = "day-mode";
-        ApplySettings(true, true, 20, false, true);
-    }
+		_currentMode = "day-mode";
+		ApplySettings(new SmartHomeSettings
+		{
+			TVOn = true,
+			LightOn = true,
+			Temperature = 20,
+			CurtainClosed = false,
+			MusicPlaying = true,
+			SecurityOn = true
+		});
+	}
 
     public void ResetSettings()
     {
-        _currentMode = "default";
-        ApplySettings(false, true, 20, true, true);
-    }
+		_currentMode = "default";
+		ApplySettings(new SmartHomeSettings
+		{
+			TVOn = false,
+			LightOn = true,
+			Temperature = 20,
+			CurtainClosed = true,
+			MusicPlaying = true,
+			SecurityOn = true
+		});
+	}
 
-    public void SetCustomMode(string modeName, bool tvOn, bool lightOn, int temperature, bool curtainClosed, bool musicPlaying)
-    {
-        _currentMode = modeName;
-        ApplySettings(tvOn, lightOn, temperature, curtainClosed, musicPlaying);
-    }
+	public void SetCustomMode(string modeName, SmartHomeSettings settings)
+	{
+		_currentMode = modeName;
+		ApplySettings(settings);
+	}
 
-    private void ApplySettings(bool tvOn, bool lightOn, int temperature, bool curtainClosed, bool musicPlaying)
-    {
-        if (tvOn) _tv.On(); else _tv.Off();
-        if (lightOn) _light.On(); else _light.Off();
-        _thermostat.SetTemperature(temperature);
-        if (curtainClosed) _curtain.Close(); else _curtain.Open();
-        if (musicPlaying) _musicPlayer.PlayBackgroundMusic(); else _musicPlayer.Off();
-    }
+	private void ApplySettings(SmartHomeSettings settings)
+	{
+		// Roep de keten van handlers aan
+		_handlerChain.HandleRequest(settings);
+	}
 
 
 	//private void ApplySettings(Dictionary<string, object> settings)
@@ -119,8 +177,9 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
         var temperature = _thermostat.GetTemperature(); // Assuming this method exists
         var curtainStatus = _curtain.GetCurrentStatus(); // Method to get current status
         var musicStatus = _musicPlayer.GetCurrentStatus(); // Method to get current status
+		var cameraStatus = _securityCamera.GetCurrentStatus();  // Method to get current status
 
-        return $"TV: {tvStatus}, Light: {lightStatus}, Temperature: {temperature}°C, Curtain: {curtainStatus}, Music: {musicStatus}";
+		return $"TV: {tvStatus}, Light: {lightStatus}, Temperature: {temperature}°C, Curtain: {curtainStatus}, Music: {musicStatus}";
     }
     public object ToSerializableObject()
     {

@@ -1,14 +1,24 @@
-﻿namespace SmartHome.Patterns.ChainOfResponsibility
+﻿using SmartHome.Models;
+
+namespace SmartHome.Patterns.ChainOfResponsibility
 {
-    public abstract class DeviceHandler
-    {
-        protected DeviceHandler _next;
+	public abstract class DeviceHandler
+	{
+		protected DeviceHandler _nextHandler;
 
-        public void SetNext(DeviceHandler next)
-        {
-            _next = next;
-        }
+		public void SetNext(DeviceHandler nextHandler)
+		{
+			_nextHandler = nextHandler;
+		}
 
-        public abstract void HandleRequest(string request);
-    }
+		public void HandleRequest(SmartHomeSettings settings)
+		{
+			if (Handle(settings) && _nextHandler != null)
+			{
+				_nextHandler.HandleRequest(settings);
+			}
+		}
+
+		protected abstract bool Handle(SmartHomeSettings settings);
+	}
 }
