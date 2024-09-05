@@ -1,9 +1,11 @@
 ﻿using SmartHome.Patterns.Mediator;
+using SmartHome.Patterns.Visitor;
 
 namespace SmartHome.Models
 {
-    public class MotionSensor
+    public class MotionSensor 
     {
+
         public event Action OnMotionDetected;
 
         public void SimulateMotion()

@@ -1,8 +1,9 @@
 ﻿using SmartHome.Patterns.State;
+using SmartHome.Patterns.Visitor;
 
 namespace SmartHome.Models
 {
-    public interface IMusicPlayer
+    public interface IMusicPlayer : IDevice
     {
         void Play();
         void Pause();
@@ -13,15 +14,17 @@ namespace SmartHome.Models
 
     public class MusicPlayer : IDevice, IMusicPlayer
     {
+        public double EnergyUsage { get; set; } = 0.30;
+
         public string CurrentStatus { get; private set; } = "off";
         // Implementatie van IDevice interface
-        public void On()
+        public void TurnOn()
         {
             CurrentStatus = "on";
             Console.WriteLine("Music Player is On");
         }
 
-        public void Off()
+        public void TurnOff()
         {
             CurrentStatus = "off";
             Console.WriteLine("Music Player is Off");
@@ -71,6 +74,11 @@ namespace SmartHome.Models
         public string GetCurrentStatus()
         {
             return CurrentStatus;
+        }
+
+        public void Accept(IDeviceVisitor visitor)
+        {
+            visitor.Visit(this);
         }
     }
 }

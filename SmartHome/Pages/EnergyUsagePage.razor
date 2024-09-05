@@ -1,0 +1,35 @@
+﻿@page "/energy-usage"
+@inject SmartHomeFacade SmartHomeFacade
+
+<h3>Energy Usage Overview</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Device</th>
+            <th>Energy Usage (kWh)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var usage in EnergyUsages)
+        {
+            <tr>
+                <td>@usage.DeviceName</td>
+                <td>@usage.EnergyUsage</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Total Energy Usage: @TotalEnergyUsage kWh</h4>
+
+@code {
+    private IEnumerable<(string DeviceName, double EnergyUsage)> EnergyUsages;
+    private double TotalEnergyUsage;
+
+    protected override void OnInitialized()
+    {
+        EnergyUsages = SmartHomeFacade.GetEnergyUsages();
+        TotalEnergyUsage = SmartHomeFacade.CalculateTotalEnergyUsage();
+    }
+}

@@ -14,7 +14,7 @@ namespace SmartHome.Patterns.ChainOfResponsibility
 		protected override bool Handle(SmartHomeSettings settings)
 		{
 			if (settings.MusicPlaying) _musicPlayer.PlayBackgroundMusic();
-			else _musicPlayer.Off();
+			else _musicPlayer.TurnOff();
 			return true;
 		}
 	}

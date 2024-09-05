@@ -22,6 +22,7 @@ builder.Services.AddTransient<Curtain>();
 builder.Services.AddTransient<SecurityCamera>();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<SmartHomeFacadeFactory>();
+builder.Services.AddTransient<SmartHomeSettings>();
 
 
 var app = builder.Build();

@@ -1,6 +1,7 @@
 ﻿using SmartHome.Models;
 using SmartHome.Patterns.ChainOfResponsibility;
 using SmartHome.Patterns.Prototype;
+using SmartHome.Patterns.Visitor;
 
 public class SmartHomeFacade : IPrototype<SmartHomeFacade>
 {
@@ -146,26 +147,6 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
 		_handlerChain.HandleRequest(settings);
 	}
 
-
-	//private void ApplySettings(Dictionary<string, object> settings)
-	//{
-	//	// Gebruik TryGetValue om de waarde op te halen of een standaardwaarde te gebruiken
-	//	settings.TryGetValue("tvOn", out object tvOnObj);
-	//	settings.TryGetValue("lightOn", out object lightOnObj);
-	//	settings.TryGetValue("temperature", out object temperatureObj);
-	//	settings.TryGetValue("curtainClosed", out object curtainClosedObj);
-	//	settings.TryGetValue("musicPlaying", out object musicPlayingObj);
-
-	//	bool tvOn = tvOnObj is bool tvOnBool ? tvOnBool : false;
-	//	bool lightOn = lightOnObj is bool lightOnBool ? lightOnBool : false;
-	//	int temperature = temperatureObj is int temp ? temp : 20;
-	//	bool curtainClosed = curtainClosedObj is bool curtainClosedBool ? curtainClosedBool : false;
-	//	bool musicPlaying = musicPlayingObj is bool musicPlayingBool ? musicPlayingBool : false;
-
-	//	// Roep nu de bestaande ApplySettings-methode aan
-	//	ApplySettings(tvOn, lightOn, temperature, curtainClosed, musicPlaying);
-	//}
-
 	public string GetCurrentMode()
     {
         return _currentMode;
@@ -193,6 +174,30 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
             CurrentMode = _currentMode
         };
     }
+    public double CalculateTotalEnergyUsage()
+    {
+        var energyVisitor = new EnergyUsageVisitor();
+        _tv.Accept(energyVisitor);
+        _light.Accept(energyVisitor);
+        _thermostat.Accept(energyVisitor);
+        _curtain.Accept(energyVisitor);
+        _musicPlayer.Accept(energyVisitor);
+        _securityCamera.Accept(energyVisitor);
+        // Voeg Accept-aanroepen toe voor andere apparaten indien nodig
+        return energyVisitor.TotalEnergyUsage;
+    }
+
+    public IEnumerable<(string DeviceName, double EnergyUsage)> GetEnergyUsages()
+    {
+        var energyVisitor = new EnergyUsageVisitor();
+        var devices = new List<IDevice> { _tv, _light, _thermostat, _curtain, _musicPlayer, _securityCamera };
+        foreach (var device in devices)
+        {
+            device.Accept(energyVisitor);
+        }
+        return devices.Select(device => (device.GetType().Name, device.EnergyUsage));
+    }
+
     public SmartHomeFacade Clone()
     {
         return (SmartHomeFacade)MemberwiseClone();

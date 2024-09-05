@@ -1,11 +1,14 @@
 ﻿using SmartHome.Patterns.State;
 using SmartHome.Patterns.Strategy;
+using SmartHome.Patterns.Visitor;
 using SmartHome.Services;
 
 namespace SmartHome.Models
 {
     public class TV : IDevice
     {
+        public double EnergyUsage { get; set; } = 0.45; // Voorbeeldwaarde
+
         public ITVState State { get; set; }
         public IVolumeStrategy VolumeStrategy { get; set; }
         public string CurrentMode { get; private set; }
@@ -17,7 +20,7 @@ namespace SmartHome.Models
             State = new OffState();
         }
 
-        public void On()
+        public void TurnOn()
         {
             State = new OnState();
             CurrentStatus = "on";
@@ -25,7 +28,7 @@ namespace SmartHome.Models
             Console.WriteLine("TV is On");
         }
 
-        public void Off()
+        public void TurnOff()
         {
             State = new OffState();
             CurrentStatus = "off";
@@ -95,6 +98,11 @@ namespace SmartHome.Models
         public string GetCurrentStatus()
         {
             return CurrentStatus;
+        }
+
+        public void Accept(IDeviceVisitor visitor)
+        {
+            visitor.Visit(this);
         }
     }
 }

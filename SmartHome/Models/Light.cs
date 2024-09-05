@@ -1,16 +1,18 @@
-﻿using SmartHome.Services;
+﻿using SmartHome.Patterns.Visitor;
+using SmartHome.Services;
 
 namespace SmartHome.Models
 {
     public class Light : IDevice
     {
+        public double EnergyUsage { get; set; } = 0.25;
         public bool IsOn { get; private set; }
         public bool IsDimmed { get; private set; }
         public bool IsDiscoMode { get; private set; }
         public string CurrentStatus { get; private set; } = "off";
 
 
-        public void On()
+        public void TurnOn()
         {
             IsOn = true;
             IsDimmed = false;
@@ -19,7 +21,7 @@ namespace SmartHome.Models
             Console.WriteLine("Light is On");
         }
 
-        public void Off()
+        public void TurnOff()
         {
             IsOn = false;
             IsDimmed = false;
@@ -48,6 +50,11 @@ namespace SmartHome.Models
         public string GetCurrentStatus()
         {
             return CurrentStatus;
+        }
+
+        public void Accept(IDeviceVisitor visitor)
+        {
+            visitor.Visit(this);
         }
     }
 }

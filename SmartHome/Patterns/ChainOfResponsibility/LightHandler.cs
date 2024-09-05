@@ -13,8 +13,8 @@ namespace SmartHome.Patterns.ChainOfResponsibility
 
 		protected override bool Handle(SmartHomeSettings settings)
 		{
-			if (settings.LightOn) _light.On();
-			else _light.Off();
+			if (settings.LightOn) _light.TurnOn();
+			else _light.TurnOff();
 			return true;
 		}
 	}

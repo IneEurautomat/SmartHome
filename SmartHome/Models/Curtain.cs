@@ -1,7 +1,11 @@
-﻿namespace SmartHome.Models
+﻿using SmartHome.Patterns.Visitor;
+using static SmartHome.Models.Curtain;
+
+namespace SmartHome.Models
 {
     public class Curtain : IDevice
     {
+        public double EnergyUsage { get; set; } = 0.05;
         public string CurrentStatus { get; private set; } = "closed";
 
         public void Open()
@@ -12,30 +16,35 @@
 
         public void Close()
         {
-            CurrentStatus = "close";
+            CurrentStatus = "closed";
             Console.WriteLine("Curtain is Closed");
         }
+
         public void HalfOpen()
         {
             CurrentStatus = "halfopen";
             Console.WriteLine("Curtain is HalfOpen");
         }
 
-        public void On()
+        public void TurnOn()
         {
-            CurrentStatus = "on";
-            Console.WriteLine("Curtain is opening or closing");
+            Console.WriteLine("Curtain is being operated");
         }
 
-        public void Off()
+        public void TurnOff()
         {
-            CurrentStatus = "off";
-            Console.WriteLine("Curtain has stopped opening or closing");
+            Console.WriteLine("Curtain has stopped operating");
         }
 
         public string GetCurrentStatus()
         {
             return CurrentStatus;
         }
+
+        public void Accept(IDeviceVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
+
 }

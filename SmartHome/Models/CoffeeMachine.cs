@@ -1,4 +1,6 @@
-﻿namespace SmartHome.Models
+﻿using SmartHome.Patterns.Visitor;
+
+namespace SmartHome.Models
 {
     public class CoffeeMachine : ICoffeeMachine
     {
@@ -8,6 +10,7 @@
         private string coffeeType;
         private string strength;
         private int waterAmount;
+        public double EnergyUsage { get; set; } = 0.10; // Voorbeeldwaarde
 
         public CoffeeMachine(string coffeeType, string strength, string waterAmount)
         {
@@ -23,9 +26,24 @@
             this.waterAmount = waterAmount;
         }
 
+        public void Accept(IDeviceVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
         public void BrewCoffee()
         {
             Console.WriteLine($"Brewing {_strength} {_coffeeType} with {_waterAmount}ml water.");
+        }
+
+        public void Off()
+        {
+            Console.WriteLine("CoffeeMachine is Off");
+        }
+
+        public void On()
+        {
+            Console.WriteLine("CoffeeMachine is On");
         }
     }
 }

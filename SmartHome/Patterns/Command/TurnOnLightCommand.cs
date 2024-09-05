@@ -14,7 +14,7 @@ namespace SmartHome.Patterns.Command
 
         public void Execute()
         {
-            _light.On();
+            _light.TurnOn();
         }
     }
 }

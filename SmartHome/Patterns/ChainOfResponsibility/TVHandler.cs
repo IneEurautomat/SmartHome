@@ -13,8 +13,8 @@ namespace SmartHome.Patterns.ChainOfResponsibility
 
 		protected override bool Handle(SmartHomeSettings settings)
 		{
-			if (settings.TVOn) _tv.On();
-			else _tv.Off();
+			if (settings.TVOn) _tv.TurnOn();
+			else _tv.TurnOff();
 			return true;
 		}
 	}

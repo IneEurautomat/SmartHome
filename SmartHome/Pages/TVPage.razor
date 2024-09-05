@@ -43,7 +43,7 @@
     }
     private void TurnOn()
     {
-        _tv.On();
+        _tv.TurnOn();
         UpdateStatusImage();
         StateHasChanged(); // Update the UI to reflect the change
 
@@ -51,7 +51,7 @@
 
     private void TurnOff()
     {
-        _tv.Off();
+        _tv.TurnOff();
         UpdateStatusImage();
         StateHasChanged(); // Update the UI to reflect the change
 

@@ -1,22 +1,26 @@
 ﻿
 //ADAPTER Pattern
 //---------------------------------------------
+using SmartHome.Patterns.Visitor;
+
 namespace SmartHome.Models
 {
     public class OldThermostat : IDevice
     {
+        public double EnergyUsage { get; set; } = 0.05;
+
         private int _currentTemperature = 18;
 
         public int GetCurrentTemperature()
         {
             return _currentTemperature;
         }
-        public void On()
+        public void TurnOn()
         {
             Console.WriteLine("Thermostat is On");
         }
 
-        public void Off()
+        public void TurnOff()
         {
             Console.WriteLine("Thermostat is Off");
         }
@@ -33,27 +37,34 @@ namespace SmartHome.Models
                 Console.WriteLine($"Old thermostat set to {_currentTemperature} degrees.");
             }
         }
+
+        public void Accept(IDeviceVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 
-    public interface INewThermostat
+    public interface INewThermostat : IDevice
     {
         void SetTemperature(int degrees);
     }
 
     public class OldThermostatAdapter : INewThermostat
     {
+        public double EnergyUsage { get; set; } = 0.05;
+
         private readonly OldThermostat _oldThermostat;
 
         public OldThermostatAdapter(OldThermostat oldThermostat)
         {
             _oldThermostat = oldThermostat;
         }
-        public void On()
+        public void TurnOn()
         {
             Console.WriteLine("Thermostat is On");
         }
 
-        public void Off()
+        public void TurnOff()
         {
             Console.WriteLine("Thermostat is Off");
         }
@@ -66,6 +77,11 @@ namespace SmartHome.Models
         public int GetTemperature()
         {
             return _oldThermostat.GetCurrentTemperature();
+        }
+
+        public void Accept(IDeviceVisitor visitor)
+        {
+            visitor.Visit(this);
         }
     }
 }
