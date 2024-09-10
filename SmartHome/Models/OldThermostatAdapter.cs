@@ -42,6 +42,11 @@ namespace SmartHome.Models
         {
             visitor.Visit(this);
         }
+
+        internal void SetTemperature(int temperature)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public interface INewThermostat : IDevice

@@ -23,7 +23,16 @@ builder.Services.AddTransient<SecurityCamera>();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<SmartHomeFacadeFactory>();
 builder.Services.AddTransient<SmartHomeSettings>();
-
+builder.Services.AddHttpClient<TemperatureService>();
+builder.Services.AddSingleton<TemperatureService>();
+builder.Services.AddHttpClient<OutdoorTemperatureService>(client =>
+{
+    client.BaseAddress = new Uri("https://dataservice.accuweather.com/");
+});
+builder.Services.AddSingleton(new OutdoorTemperatureService(
+    new HttpClient { BaseAddress = new Uri("https://dataservice.accuweather.com/") },
+    "HEbpLE4ZmAqeC0Nhqjc6syPzNGKv22xt"
+));
 
 var app = builder.Build();
 

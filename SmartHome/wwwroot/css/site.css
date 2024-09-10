@@ -256,3 +256,34 @@ img.icon {
     }
 
 
+
+.device-control {
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin: 10px;
+}
+
+.current-settings {
+    margin-bottom: 20px;
+}
+
+.control-buttons {
+    margin-top: 10px;
+}
+
+.daily-forecast, .weekly-forecast {
+    margin-top: 20px;
+}
+
+.forecast-entry {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.forecast-item {
+    border: 1px solid #ccc;
+    margin: 5px;
+    padding: 10px;
+    width: 100px;
+    text-align: center;
+}

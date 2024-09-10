@@ -11,6 +11,7 @@ namespace SmartHome.Models
         public bool IsDiscoMode { get; private set; }
         public string CurrentStatus { get; private set; } = "off";
 
+        public Light() { }
 
         public void TurnOn()
         {

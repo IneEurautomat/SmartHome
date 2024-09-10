@@ -4,25 +4,29 @@ namespace SmartHome.Models
 {
     //COMMAND
     //---------------------------------------------
-    public class RemoteControl
+    public class RemoteControl<T> where T : IDevice
     {
-        private readonly ICommand _onCommand;
-        private readonly ICommand _offCommand;
+        private Dictionary<string, ICommand<T>> _commands = new Dictionary<string, ICommand<T>>();
 
-        public RemoteControl(ICommand onCommand, ICommand offCommand)
+        public RemoteControl()
         {
-            _onCommand = onCommand;
-            _offCommand = offCommand;
+        
+        }
+        public void SetCommand(string action, ICommand<T> command)
+        {
+            _commands[action] = command;
         }
 
-        public void TurnOn()
+        public void ExecuteCommand(string action, T device)
         {
-            _onCommand.Execute();
-        }
-
-        public void TurnOff()
-        {
-            _offCommand.Execute();
+            if (_commands.ContainsKey(action))
+            {
+                _commands[action].Execute(device);
+            }
+            else
+            {
+                Console.WriteLine($"No command registered for action: {action}");
+            }
         }
     }
 }

@@ -1,54 +1,95 @@
 ﻿@page "/thermostat"
-@inject DeviceFactory DeviceFactory
-@using SmartHome.Models
 @using SmartHome.Services
-@using SmartHome.Patterns.Observer;
+@using static OutdoorTemperatureService
+@inject OutdoorTemperatureService OutdoorTemperatureService
 
-<h3>Thermostat Control</h3>
+<h3>Weather Settings</h3>
 
-<div class="device-control">
-    <div class="current-settings">
-        <h3>Current Thermostat Settings</h3>
-        <p>Current Temperature: @currentTemperature °C</p> <!-- Display current temperature -->
-    </div>
-    <div class="control-buttons">
-        <input type="number" @bind="temperature" />
-        <button @onclick="SetTemperature">Set Temperature</button>
-    </div>
+<div>
+    <h4>Current Settings</h4>
+    <!-- Hier kun je je instellingen weergeven -->
+    <p>Location: Ghent</p>
+    <p>Units: Metric</p>
+</div>
+
+<div>
+    <h4>Current Weather</h4>
+    @if (currentWeather != null)
+    {
+        <div>
+            <p>Temperature: @currentWeather.Temperature?.Metric?.Value ?? "N/A" °C</p>
+            <p>Condition: @currentWeather.Weather?[0]?.IconPhrase ?? "N/A"</p>
+            <img src="@($"https://developer.accuweather.com/sites/default/files/{currentWeather.Weather?[0]?.Icon:00}-s.png")" alt="Weather icon" />
+        </div>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</div>
+
+<div>
+    <h4>Daily Forecast</h4>
+    @if (dailyForecasts != null)
+    {
+        <ul>
+            @foreach (var forecast in dailyForecasts)
+            {
+                <li>
+                    @forecast.Day: @forecast.Temperature °C
+                    <img src="@forecast.IconUrl" alt="Weather icon" />
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</div>
+
+<div>
+    <h4>5-Day Forecast</h4>
+    @if (weeklyForecasts != null)
+    {
+        <ul>
+            @foreach (var forecast in weeklyForecasts)
+            {
+                <li>
+                    @forecast.Day: @forecast.Temperature °C
+                    <img src="@forecast.IconUrl" alt="Weather icon" />
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
 </div>
 
 @code {
-    private OldThermostatAdapter _thermostat;
-    private TemperatureMonitor _monitor;
-    private ThermostatDisplay _display;
-    private int temperature;
-    private int currentTemperature;
+    private WeatherResponse currentWeather;
+    private List<OutdoorTemperatureService.TemperatureEntry> dailyForecasts;
+    private List<OutdoorTemperatureService.TemperatureEntry> weeklyForecasts;
 
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var oldThermostat = new OldThermostat();
-        _thermostat = new OldThermostatAdapter(oldThermostat);
-        _monitor = new TemperatureMonitor();
-        _display = new ThermostatDisplay(UpdateCurrentTemperature);
+        try
+        {
+            // Huidige weerinformatie ophalen
+            currentWeather = await OutdoorTemperatureService.GetCurrentWeatherAsync("Ghent");
 
-        _monitor.RegisterObserver(_display);
-    }
+            // Dagelijkse voorspellingen ophalen
+            dailyForecasts = await OutdoorTemperatureService.GetDailyTemperaturesAsync("Ghent");
 
-    private void SetTemperature()
-    {
-        _thermostat.SetTemperature(temperature);
-        UpdateTemperature(temperature);
-    }
-
-    private void UpdateTemperature(int temp)
-    {
-        _monitor.TemperatureChanged(temp);
-    }
-
-    private void UpdateCurrentTemperature(int newTemp)
-    {
-        currentTemperature = newTemp;
-        StateHasChanged(); // Ensure the UI updates when the temperature changes
+            // Wekelijkse voorspellingen ophalen
+            weeklyForecasts = await OutdoorTemperatureService.GetWeeklyTemperaturesAsync("Ghent");
+        }
+        catch (Exception ex)
+        {
+            // Foutafhandeling
+            Console.WriteLine($"Error fetching weather data: {ex.Message}");
+        }
     }
 }

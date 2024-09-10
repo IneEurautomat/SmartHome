@@ -7,7 +7,7 @@ namespace SmartHome.Models
 {
     public class TV : IDevice
     {
-        public double EnergyUsage { get; set; } = 0.45; // Voorbeeldwaarde
+        public double EnergyUsage { get; set; } = 0.45;
 
         public ITVState State { get; set; }
         public IVolumeStrategy VolumeStrategy { get; set; }

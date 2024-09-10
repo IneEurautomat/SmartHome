@@ -1,5 +1,7 @@
 ﻿@page "/tv"
 @using SmartHome.Models
+@using SmartHome.Patterns.Command.Commands
+@using SmartHome.Patterns.Command.Commands.TVCommands
 @using SmartHome.Patterns.Strategy
 @using SmartHome.Services
 @inject DeviceFactory DeviceFactory
@@ -13,12 +15,12 @@
         
     </div>
     <div class="control-buttons">
-        <button @onclick="TurnOn">Turn On</button>
-        <button @onclick="TurnOff">Turn Off</button>
-        <button @onclick="ChangeChannel">Change Channel</button>
-        <button @onclick="IncreaseVolume">Increase Volume</button>
-        <button @onclick="DecreaseVolume">Decrease Volume</button>
-        <button @onclick="Mute">Mute</button>
+        <button @onclick='() => ExecuteCommand("TurnOn")'>Turn On</button>
+        <button @onclick='() => ExecuteCommand("TurnOff")'>Turn Off</button>
+        <button @onclick='() => ExecuteCommand("ChangeChannel")'>Change Channel</button>
+        <button @onclick='() => ExecuteCommand("IncreaseVolume")'>Increase Volume</button>
+        <button @onclick='() => ExecuteCommand("DecreaseVolume")'>Decrease Volume</button>
+        <button @onclick='() => ExecuteCommand("Mute")'>Mute</button>
     </div>
     <div class="mode-selection">
         <h3>Select Mode</h3>
@@ -33,59 +35,30 @@
 
 @code {
     private TV _tv;
+    private RemoteControl<TV> _remoteControl;
+
     private string currentImage = "images/tv/tv-off.jpg";
 
     protected override void OnInitialized()
     {
         _tv = (TV)DeviceFactory.CreateDevice("TV");
+
+        _remoteControl = new RemoteControl<TV>();
+        _remoteControl.SetCommand("TurnOn", new TurnOnCommand<TV>());
+        _remoteControl.SetCommand("TurnOff", new TurnOffCommand<TV>());
+        _remoteControl.SetCommand("ChangeChannel", new ChangeChannelCommand(_tv));
+        _remoteControl.SetCommand("IncreaseVolume", new IncreaseVolumeCommand(_tv));
+        _remoteControl.SetCommand("DecreaseVolume", new DecreaseVolumeCommand(_tv));
+        _remoteControl.SetCommand("Mute", new MuteCommand(_tv));
+
         UpdateStatusImage();
-        UpdateModeImage(); // Initialiseer met de huidige modus
+        UpdateModeImage();
     }
-    private void TurnOn()
+    private void ExecuteCommand(string command)
     {
-        _tv.TurnOn();
+        _remoteControl.ExecuteCommand(command, _tv);
         UpdateStatusImage();
-        StateHasChanged(); // Update the UI to reflect the change
-
-    }
-
-    private void TurnOff()
-    {
-        _tv.TurnOff();
-        UpdateStatusImage();
-        StateHasChanged(); // Update the UI to reflect the change
-
-    }
-
-    private void ChangeChannel()
-    {
-        _tv.ChangeChannel();
-        UpdateStatusImage();
-        StateHasChanged(); // Update the UI to reflect the change
-
-    }
-
-    private void IncreaseVolume()
-    {
-        _tv.IncreaseVolume();
-        UpdateStatusImage();
-        StateHasChanged(); // Update the UI to reflect the change
-
-    }
-
-    private void DecreaseVolume()
-    {
-        _tv.DecreaseVolume();
-        UpdateStatusImage();
-        StateHasChanged(); // Update the UI to reflect the change
-    }
-
-
-    private void Mute()
-    {
-        _tv.Mute();
-        UpdateStatusImage();
-        StateHasChanged(); // Update the UI to reflect the change
+        StateHasChanged();
     }
 
     private void OnModeChange(ChangeEventArgs e)
@@ -115,8 +88,9 @@
             "music" => "images/tv/music-strategy.png",
             _ => "images/tv/tv-off.jpg"
         };
-        StateHasChanged(); // Update de UI
+        StateHasChanged();
     }
+
     private void UpdateStatusImage()
     {
         var status = _tv.GetCurrentStatus();
@@ -129,8 +103,7 @@
             "decrease-volume" => "images/tv/decrease-volume.png",
             "mute" => "images/tv/mute.png",
             _ => "images/tv/tv-off.jpg"
-
         };
-        StateHasChanged(); // Update de UI
+        StateHasChanged();
     }
 }
