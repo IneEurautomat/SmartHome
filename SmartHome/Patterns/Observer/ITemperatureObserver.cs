@@ -2,6 +2,6 @@
 {
     public interface ITemperatureObserver
     {
-        void UpdateTemperature(int newTemp);
+        void UpdateTemperature(double newTemp);
     }
 }

@@ -14,7 +14,7 @@ namespace SmartHome.Services
                 "TV" => new TV(),
                 "Light" => new Light(),
                 "MusicPlayer" => new MusicPlayer(),
-                "Thermostat" => new OldThermostat(),
+                "Thermostat" => new IndoorThermostat(),
                 "Curtain" => new Curtain(),
                 _ => throw new ArgumentException("Invalid device type")
             };

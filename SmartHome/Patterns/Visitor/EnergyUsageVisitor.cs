@@ -31,17 +31,12 @@ namespace SmartHome.Patterns.Visitor
             TotalEnergyUsage += musicPlayer.EnergyUsage;
         }
 
-        public void Visit(OldThermostatAdapter thermostat)
-        {
-            TotalEnergyUsage += thermostat.EnergyUsage;
-        }
-
         public void Visit(CoffeeMachine coffeeMachine)
         {
             TotalEnergyUsage += coffeeMachine.EnergyUsage;
         }
 
-        public void Visit(OldThermostat thermostat)
+        public void Visit(IndoorThermostat thermostat)
         {
             TotalEnergyUsage += thermostat.EnergyUsage;
         }

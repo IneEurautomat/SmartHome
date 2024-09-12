@@ -2,7 +2,7 @@
 
 namespace SmartHome.Patterns.Command.Commands.ThermostatCommands
 {
-    public class SetTemperatureCommand<T> : ICommand<T> where T : OldThermostat
+    public class SetTemperatureCommand<T> : ICommand<T> where T : IThermostat
     {
         private readonly T _thermostat;
         private readonly int _temperature;
@@ -13,9 +13,9 @@ namespace SmartHome.Patterns.Command.Commands.ThermostatCommands
             _temperature = temperature;
         }
 
-        public void Execute(T Device)
+        public void Execute(T thermostat)
         {
-            _thermostat.SetTemperature(_temperature);
+            thermostat.SetTemperature(_temperature);
         }
     }
 }

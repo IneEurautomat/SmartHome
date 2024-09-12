@@ -3,93 +3,54 @@
 @using static OutdoorTemperatureService
 @inject OutdoorTemperatureService OutdoorTemperatureService
 
-<h3>Weather Settings</h3>
-
 <div>
-    <h4>Current Settings</h4>
-    <!-- Hier kun je je instellingen weergeven -->
-    <p>Location: Ghent</p>
-    <p>Units: Metric</p>
+	<h4>Current Weather</h4>
+	@if (outdoorTemperature != null)
+	{
+		<div>
+			<p>Current Outdoor Temperature: @outdoorTemperature.Current.TempC °C</p>
+			<p>Condition: @outdoorTemperature.Current.Condition.Text</p>
+			<img src="@outdoorTemperature.Current.Condition.Icon" alt="Weather icon">
+		</div>
+	}
+	else
+	{
+		<p>Loading...</p>
+	}
 </div>
 
 <div>
-    <h4>Current Weather</h4>
-    @if (currentWeather != null)
-    {
-        <div>
-            <p>Temperature: @currentWeather.Temperature?.Metric?.Value ?? "N/A" °C</p>
-            <p>Condition: @currentWeather.Weather?[0]?.IconPhrase ?? "N/A"</p>
-            <img src="@($"https://developer.accuweather.com/sites/default/files/{currentWeather.Weather?[0]?.Icon:00}-s.png")" alt="Weather icon" />
-        </div>
-    }
-    else
-    {
-        <p>Loading...</p>
-    }
+	<h4>3-Day Forecast</h4>
+	@if (threeDayForecast != null)
+	{
+		<ul>
+			@foreach (var forecast in threeDayForecast)
+			{
+				<p>@forecast.Date: @forecast.Day.MaxTempC °C</p>
+				<img src="@forecast.Day.Condition.Icon" alt="Weather icon">
+			}
+		</ul>
+	}
+	else
+	{
+		<p>Loading...</p>
+	}
 </div>
-
-<div>
-    <h4>Daily Forecast</h4>
-    @if (dailyForecasts != null)
-    {
-        <ul>
-            @foreach (var forecast in dailyForecasts)
-            {
-                <li>
-                    @forecast.Day: @forecast.Temperature °C
-                    <img src="@forecast.IconUrl" alt="Weather icon" />
-                </li>
-            }
-        </ul>
-    }
-    else
-    {
-        <p>Loading...</p>
-    }
-</div>
-
-<div>
-    <h4>5-Day Forecast</h4>
-    @if (weeklyForecasts != null)
-    {
-        <ul>
-            @foreach (var forecast in weeklyForecasts)
-            {
-                <li>
-                    @forecast.Day: @forecast.Temperature °C
-                    <img src="@forecast.IconUrl" alt="Weather icon" />
-                </li>
-            }
-        </ul>
-    }
-    else
-    {
-        <p>Loading...</p>
-    }
-</div>
-
 @code {
-    private WeatherResponse currentWeather;
-    private List<OutdoorTemperatureService.TemperatureEntry> dailyForecasts;
-    private List<OutdoorTemperatureService.TemperatureEntry> weeklyForecasts;
+	private CurrentWeatherResponse outdoorTemperature;
+	private List<ForecastDay> threeDayForecast;
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            // Huidige weerinformatie ophalen
-            currentWeather = await OutdoorTemperatureService.GetCurrentWeatherAsync("Ghent");
-
-            // Dagelijkse voorspellingen ophalen
-            dailyForecasts = await OutdoorTemperatureService.GetDailyTemperaturesAsync("Ghent");
-
-            // Wekelijkse voorspellingen ophalen
-            weeklyForecasts = await OutdoorTemperatureService.GetWeeklyTemperaturesAsync("Ghent");
-        }
-        catch (Exception ex)
-        {
-            // Foutafhandeling
-            Console.WriteLine($"Error fetching weather data: {ex.Message}");
-        }
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync("London");
+			var forecastResponse = await OutdoorTemperatureService.Get3DayForecastAsync("London");
+			threeDayForecast = forecastResponse.Forecast.ForecastDay;
+		}
+		catch (Exception ex)
+		{
+			// Handle the error
+		}
+	}
 }

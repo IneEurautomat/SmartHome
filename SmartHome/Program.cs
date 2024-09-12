@@ -8,31 +8,58 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton(ConfigurationService.Instance);
 builder.Services.AddTransient<DeviceFactory>();
 builder.Services.AddTransient<SmartHomeFacade>();
 builder.Services.AddTransient<TV>();
 builder.Services.AddTransient<Light>();
-builder.Services.AddTransient<OldThermostat>();
-builder.Services.AddTransient<OldThermostatAdapter>();
+builder.Services.AddTransient<IndoorThermostat>();
 builder.Services.AddTransient<MusicPlayer>();
 builder.Services.AddTransient<Curtain>();
 builder.Services.AddTransient<SecurityCamera>();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddSingleton<SmartHomeFacadeFactory>();
+builder.Services.AddTransient<SmartHomeFacadeFactory>();
 builder.Services.AddTransient<SmartHomeSettings>();
-builder.Services.AddHttpClient<TemperatureService>();
-builder.Services.AddSingleton<TemperatureService>();
+
+
+//// Register HttpClient and OutdoorTemperatureService
 builder.Services.AddHttpClient<OutdoorTemperatureService>(client =>
 {
-    client.BaseAddress = new Uri("https://dataservice.accuweather.com/");
+	client.BaseAddress = new Uri("https://api.weatherapi.com/v1/");
 });
 builder.Services.AddSingleton(new OutdoorTemperatureService(
-    new HttpClient { BaseAddress = new Uri("https://dataservice.accuweather.com/") },
-    "HEbpLE4ZmAqeC0Nhqjc6syPzNGKv22xt"
-));
+	new HttpClient { BaseAddress = new Uri("https://api.weatherapi.com/v1/") },
+	"1d2c5de7a6484c0285b91852241209"));
+
+
+
+
+////https://api.weatherapi.com/v1/forecast.json?q=Ghent&days=1&key=1d2c5de7a6484c0285b91852241209
+
+//builder.Services.AddTransient<OutdoorTemperatureService>(provider =>
+//{
+//	var httpClient = provider.GetRequiredService<HttpClient>();
+//	var apiKey = "1d2c5de7a6484c0285b91852241209"; // Replace with your actual API key
+//	return new OutdoorTemperatureService(httpClient, apiKey);
+//});
+
+// Register System.Action<double> as a delegate
+builder.Services.AddTransient<System.Action<double>>(provider =>
+{
+	// Define the action to be performed when the temperature changes
+	return temperature =>
+	{
+		// Example action: Log the temperature update
+		Console.WriteLine($"Temperature updated to: {temperature}°C");
+	};
+});
+
+// Register ThermostatDisplay with the required dependency
+builder.Services.AddTransient<ThermostatDisplay>(provider =>
+{
+	var temperatureUpdateAction = provider.GetRequiredService<System.Action<double>>();
+	return new ThermostatDisplay(temperatureUpdateAction);
+});
 
 var app = builder.Build();
 
@@ -40,16 +67,13 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
 	app.UseExceptionHandler("/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 	app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

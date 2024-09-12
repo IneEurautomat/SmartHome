@@ -9,8 +9,7 @@ namespace SmartHome.Patterns.Visitor
         void Visit(Curtain curtain);
         void Visit(SecurityCamera securityCamera);
         void Visit(MusicPlayer musicPlayer);
-        void Visit(OldThermostat thermostat);
-        void Visit(OldThermostatAdapter oldThermostatAdapter);
+        void Visit(IndoorThermostat thermostat);
         void Visit(CoffeeMachine coffeeMachine);
 
         //void Visit(WashingMachine washingMachine);

@@ -4,9 +4,9 @@ namespace SmartHome.Patterns.ChainOfResponsibility
 {
 	public class ThermostatHandler : DeviceHandler
 	{
-		private readonly OldThermostatAdapter _thermostat;
+		private readonly IndoorThermostat _thermostat;
 
-		public ThermostatHandler(OldThermostatAdapter thermostat)
+		public ThermostatHandler(IndoorThermostat thermostat)
 		{
 			_thermostat = thermostat;
 		}
