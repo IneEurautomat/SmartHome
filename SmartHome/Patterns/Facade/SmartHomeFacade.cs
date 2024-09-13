@@ -14,6 +14,7 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
     private readonly MusicPlayer _musicPlayer;
     private readonly SecurityCamera _securityCamera;
     private readonly ThermostatDisplay _thermostatDisplay;
+    private string _location;
 
     private string _currentMode;
     private DeviceHandler _handlerChain;
@@ -26,7 +27,7 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
     Curtain curtain,
     MusicPlayer musicPlayer,
     SecurityCamera securityCamera,
-    ThermostatDisplay thermostatDisplay) // Added ThermostatDisplay here
+    ThermostatDisplay thermostatDisplay)
     {
         _tv = tv;
         _light = light;
@@ -36,6 +37,7 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
         _musicPlayer = musicPlayer;
         _securityCamera = securityCamera;
         _thermostatDisplay = thermostatDisplay;
+        _location = "Ghent";
 
         // Stel de keten van handlers in
         var tvHandler = new TVHandler(_tv);
@@ -71,16 +73,19 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
 
     public double GetTemperature()
     {
-        return _thermostat.GetTemperature(); // Dit is waarschijnlijk al een int
+        return _thermostat.GetTemperature(); 
     }
-    public async Task<OutdoorTemperatureService.CurrentWeatherResponse> GetOutdoorTemperatureAsync()
+    public async Task<double> GetOutdoorTemperatureAsync()
     {
-        return await _outdoorTemperature.GetCurrentWeatherAsync("London"); // Replace "London" with dynamic location as needed
+        var currentWeather = await _outdoorTemperature.GetCurrentWeatherAsync(_location);
+        var temp = currentWeather.Current.TempC;
+
+		return temp ;
     }
 
     public async Task<List<OutdoorTemperatureService.ForecastDay>> Get3DayForecastAsync()
     {
-        var forecastResponse = await _outdoorTemperature.Get3DayForecastAsync("London"); // Replace "London" with dynamic location as needed
+        var forecastResponse = await _outdoorTemperature.Get3DayForecastAsync(_location); 
         return forecastResponse.Forecast.ForecastDay;
     }
 
@@ -181,12 +186,12 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
         return _currentMode;
     }
 
-    public string GetCurrentSettings()
+    public async Task<string> GetCurrentSettings()
     {
         var tvStatus = _tv.GetCurrentStatus();  // Method to get current status
         var lightStatus = _light.GetCurrentStatus(); // Method to get current status
         var temperature = _thermostat.GetTemperature(); // Assuming this method exists
-        var outdoorTemperature = GetOutdoorTemperatureAsync();
+        var outdoorTemperature = await GetOutdoorTemperatureAsync();
         var curtainStatus = _curtain.GetCurrentStatus(); // Method to get current status
         var musicStatus = _musicPlayer.GetCurrentStatus(); // Method to get current status
         var cameraStatus = _securityCamera.GetCurrentStatus();  // Method to get current status
@@ -194,14 +199,14 @@ public class SmartHomeFacade : IPrototype<SmartHomeFacade>
         return $"TV: {tvStatus}, Light: {lightStatus}, Indoor Temperature: {temperature}°C, Outdoor Temperature: {outdoorTemperature}°C, Curtain: {curtainStatus}, Music: {musicStatus}";
     }
 
-    public object ToSerializableObject()
+    public async Task<object> ToSerializableObject()
     {
         return new
         {
             TVStatus = _tv.GetCurrentStatus(),
             LightStatus = _light.GetCurrentStatus(),
             IndoorTemperature = _thermostat.GetTemperature(),
-            OutdoorTemperature = GetOutdoorTemperatureAsync(),
+            OutdoorTemperature = await GetOutdoorTemperatureAsync(),
             CurtainStatus = _curtain.GetCurrentStatus(),
             MusicStatus = _musicPlayer.GetCurrentStatus(),
             CurrentMode = _currentMode

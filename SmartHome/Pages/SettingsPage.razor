@@ -214,7 +214,8 @@
 	{
 		try
 		{
-			currentSettings = SmartHomeFacade.GetCurrentSettings();
+			currentSettings = await SmartHomeFacade.GetCurrentSettings();
+			Console.WriteLine($"Current Settings: {currentSettings}");
 		}
 		catch (Exception ex)
 		{

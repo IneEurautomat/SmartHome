@@ -16,37 +16,13 @@ public class OutdoorTemperatureService
     }
 
     public async Task<CurrentWeatherResponse> GetCurrentWeatherAsync(string location)
-    {
-
-		//var url = $"forecast.json?key={_apiKey}&q={location}";
-		//      var response = await _httpClient.GetAsync(url);
-		//      response.EnsureSuccessStatusCode();
-
-		//      var json = await response.Content.ReadAsStringAsync();
-		//Console.WriteLine(json);
-
-		//return JsonSerializer.Deserialize<CurrentWeatherResponse>(json, new JsonSerializerOptions
-		//      {
-		//          PropertyNameCaseInsensitive = true
-		//      });
-
+    {		
 		var response = await _httpClient.GetFromJsonAsync<CurrentWeatherResponse>($"current.json?key={_apiKey}&q={location}");
 		return response;
-		Console.WriteLine(response);
-
 	}
 
 	public async Task<ForecastResponse> Get3DayForecastAsync(string location)
     {
-		//var url = $"forecast.json?key={_apiKey}&q={location}&days=3";
-		//var response = await _httpClient.GetAsync(url);
-		//response.EnsureSuccessStatusCode();
-
-		//var json = await response.Content.ReadAsStringAsync();
-		//return JsonSerializer.Deserialize<ForecastResponse>(json, new JsonSerializerOptions
-		//{
-		//    PropertyNameCaseInsensitive = true
-		//});
 		var response = await _httpClient.GetFromJsonAsync<ForecastResponse>($"forecast.json?key={_apiKey}&q={location}&days=3");
 		return response;
 	}
