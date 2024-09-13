@@ -1,11 +1,24 @@
 ﻿@page "/thermostat"
+@using SmartHome.Models
 @using SmartHome.Services
 @using static OutdoorTemperatureService
 @inject OutdoorTemperatureService OutdoorTemperatureService
+@inject IndoorThermostat IndoorThermostat
+
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
 <div>
+	<h4>Indoor Temperature</h4>
+	<p>@indoorTemperature °C</p>
+</div>
+<div>
+	<h4>Set Location</h4>
+	<input @bind="location" placeholder="Enter location" />
+	<button @onclick="UpdateLocation">Save Location</button>
+</div>
+<div>
+
 	<h4>Current Weather</h4>
 	@if (outdoorTemperature != null)
 	{
@@ -21,11 +34,7 @@
 		<p>Loading...</p>
 	}
 </div>
-<div>
-	<h4>Set Location</h4>
-	<input @bind="location" placeholder="Enter location" />
-	<button @onclick="UpdateLocation">Save Location</button>
-</div>
+
 <div>
 	<h4>3-Day Forecast</h4>
 	@if (threeDayForecast != null)
@@ -33,11 +42,12 @@
 		<ul>
 			@foreach (var forecast in threeDayForecast)
 			{
+				<p>@dayOfTheWeek</p>
 				<p>@forecast.Date:</p>
+				<img src="@forecast.Day.Condition.Icon" alt="Weather icon">
 				<p>Min Temperature: @forecast.Day.MinTempC °C</p>
 				<p>Max Temperature: @forecast.Day.MaxTempC °C</p>
 				<p>Condition: @forecast.Day.Condition.Text</p>
-				<img src="@forecast.Day.Condition.Icon" alt="Weather icon">
 			}
 		</ul>
 	}
@@ -48,14 +58,37 @@
 </div>
 @code {
 	private CurrentWeatherResponse outdoorTemperature;
+	private double indoorTemperature;
 	private List<ForecastDay> threeDayForecast;
+	private ThermostatDisplay _thermostatDisplay;
+	private string dateInput;
+	private DayOfWeek dayOfTheWeek;
+
 	private string location = "Ghent";
 
 
 	protected override async Task OnInitializedAsync()
 	{
-		// Initialize default location
-		location = "Ghent"; // Default location
+		try
+		{
+			var parsedDate = DateTime.Parse(dateInput);
+			var dayOfTheWeek = parsedDate.DayOfWeek;
+			_thermostatDisplay = new ThermostatDisplay(OnTemperatureUpdate);
+
+			// Register the display with the indoor thermostat
+			IndoorThermostat.RegisterObserver(_thermostatDisplay);
+
+			// Load initial data
+			outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync("Ghent");
+			indoorTemperature = IndoorThermostat.GetTemperature();
+
+			// Assuming there's a method to register observers for outdoor temperature
+			OutdoorTemperatureService.RegisterObserver(_thermostatDisplay);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+		}
 	}
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -93,5 +126,11 @@
 		{
 			Console.WriteLine(ex);
 		}
+	}
+	private void OnTemperatureUpdate(double newTemp)
+	{
+		// Handle the updated temperature here
+		indoorTemperature = newTemp;
+		StateHasChanged(); // Refresh the UI
 	}
 }

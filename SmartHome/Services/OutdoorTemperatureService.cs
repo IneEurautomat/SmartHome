@@ -1,4 +1,6 @@
-﻿using System.Net.Http;
+﻿using SmartHome.Patterns.Observer;
+using System;
+using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -7,8 +9,9 @@ public class OutdoorTemperatureService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
+	private List<ITemperatureObserver> _observers = new List<ITemperatureObserver>();
 
-    public OutdoorTemperatureService(HttpClient httpClient, string apiKey)
+	public OutdoorTemperatureService(HttpClient httpClient, string apiKey)
     {
         _httpClient = httpClient;
         Console.WriteLine($"BaseUrl: {_httpClient.BaseAddress?.ToString()}");
@@ -26,8 +29,19 @@ public class OutdoorTemperatureService
 		var response = await _httpClient.GetFromJsonAsync<ForecastResponse>($"forecast.json?key={_apiKey}&q={location}&days=3");
 		return response;
 	}
+	public void RegisterObserver(ITemperatureObserver observer)
+	{
+		_observers.Add(observer);
+	}
 
-    public class CurrentWeatherResponse
+	private void NotifyObservers(double newTemp)
+	{
+		foreach (var observer in _observers)
+		{
+			observer.UpdateTemperature(newTemp);
+		}
+	}
+	public class CurrentWeatherResponse
     {
 		[JsonPropertyName("location")]
 		public Location Location { get; set; }
