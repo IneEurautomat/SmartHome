@@ -42,8 +42,8 @@
 		<ul>
 			@foreach (var forecast in threeDayForecast)
 			{
-				<p>@dayOfTheWeek</p>
-				<p>@forecast.Date:</p>
+@* 				<p>@dayOfTheWeek</p>
+ *@				<p>@forecast.Date:</p>
 				<img src="@forecast.Day.Condition.Icon" alt="Weather icon">
 				<p>Min Temperature: @forecast.Day.MinTempC °C</p>
 				<p>Max Temperature: @forecast.Day.MaxTempC °C</p>
