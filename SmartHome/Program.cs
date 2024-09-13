@@ -32,8 +32,6 @@ builder.Services.AddSingleton(new OutdoorTemperatureService(
 	"1d2c5de7a6484c0285b91852241209"));
 
 
-
-
 ////https://api.weatherapi.com/v1/forecast.json?q=Ghent&days=1&key=1d2c5de7a6484c0285b91852241209
 
 //builder.Services.AddTransient<OutdoorTemperatureService>(provider =>

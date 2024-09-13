@@ -26,7 +26,10 @@
 		<ul>
 			@foreach (var forecast in threeDayForecast)
 			{
-				<p>@forecast.Date: @forecast.Day.MaxTempC °C</p>
+				<p>@forecast.Date:</p>
+				<p>Min Temperature: @forecast.Day.MinTempC °C</p>
+				<p>Max Temperature: @forecast.Day.MaxTempC °C</p>
+				<p>Condition: @forecast.Day.Condition.Text</p>
 				<img src="@forecast.Day.Condition.Icon" alt="Weather icon">
 			}
 		</ul>
@@ -44,13 +47,13 @@
 	{
 		try
 		{
-			outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync("London");
-			var forecastResponse = await OutdoorTemperatureService.Get3DayForecastAsync("London");
+			outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync("Ghent");
+			var forecastResponse = await OutdoorTemperatureService.Get3DayForecastAsync("Ghent");
 			threeDayForecast = forecastResponse.Forecast.ForecastDay;
 		}
 		catch (Exception ex)
 		{
-			// Handle the error
+			Console.WriteLine(ex);
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 public class OutdoorTemperatureService
@@ -17,77 +18,102 @@ public class OutdoorTemperatureService
     public async Task<CurrentWeatherResponse> GetCurrentWeatherAsync(string location)
     {
 
-		var url = $"forecast.json?key={_apiKey}&q={location}";
-        var response = await _httpClient.GetAsync(url);
-        Console.WriteLine(response);
-        response.EnsureSuccessStatusCode();
+		//var url = $"forecast.json?key={_apiKey}&q={location}";
+		//      var response = await _httpClient.GetAsync(url);
+		//      response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<CurrentWeatherResponse>(json, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
-    }
+		//      var json = await response.Content.ReadAsStringAsync();
+		//Console.WriteLine(json);
 
-    public async Task<ForecastResponse> Get3DayForecastAsync(string location)
+		//return JsonSerializer.Deserialize<CurrentWeatherResponse>(json, new JsonSerializerOptions
+		//      {
+		//          PropertyNameCaseInsensitive = true
+		//      });
+
+		var response = await _httpClient.GetFromJsonAsync<CurrentWeatherResponse>($"current.json?key={_apiKey}&q={location}");
+		return response;
+		Console.WriteLine(response);
+
+	}
+
+	public async Task<ForecastResponse> Get3DayForecastAsync(string location)
     {
-        var url = $"forecast.json?key={_apiKey}&q={location}&days=3";
-        var response = await _httpClient.GetAsync(url);
-        response.EnsureSuccessStatusCode();
+		//var url = $"forecast.json?key={_apiKey}&q={location}&days=3";
+		//var response = await _httpClient.GetAsync(url);
+		//response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<ForecastResponse>(json, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
-    }
+		//var json = await response.Content.ReadAsStringAsync();
+		//return JsonSerializer.Deserialize<ForecastResponse>(json, new JsonSerializerOptions
+		//{
+		//    PropertyNameCaseInsensitive = true
+		//});
+		var response = await _httpClient.GetFromJsonAsync<ForecastResponse>($"forecast.json?key={_apiKey}&q={location}&days=3");
+		return response;
+	}
 
     public class CurrentWeatherResponse
     {
-        public Location Location { get; set; }
-        public Current Current { get; set; }
+		[JsonPropertyName("location")]
+		public Location Location { get; set; }
+		[JsonPropertyName("current")]
+		public Current Current { get; set; }
     }
 
     public class Location
     {
-        public string Name { get; set; }
-        public string Region { get; set; }
-        public string Country { get; set; }
+		[JsonPropertyName("name")]
+		public string Name { get; set; }
+		[JsonPropertyName("region")]
+		public string Region { get; set; }
+		[JsonPropertyName("country")]
+		public string Country { get; set; }
     }
 
     public class Current
     {
-        public double TempC { get; set; }
-        public Condition Condition { get; set; }
+		[JsonPropertyName("temp_c")]
+		public double TempC { get; set; }
+		[JsonPropertyName("condition")]
+		public Condition Condition { get; set; }
     }
 
     public class Condition
     {
-        public string Text { get; set; }
-        public string Icon { get; set; }
+		[JsonPropertyName("text")]
+		public string Text { get; set; }
+		[JsonPropertyName("icon")]
+		public string Icon { get; set; }
     }
 
     public class ForecastResponse
     {
-        public Location Location { get; set; }
-        public Forecast Forecast { get; set; }
+		[JsonPropertyName("location")]
+		public Location Location { get; set; }
+		[JsonPropertyName("forecast")]
+		public Forecast Forecast { get; set; }
     }
 
     public class Forecast
     {
-        public List<ForecastDay> ForecastDay { get; set; }
+		[JsonPropertyName("forecastday")]
+		public List<ForecastDay> ForecastDay { get; set; }
     }
 
     public class ForecastDay
     {
-        public string Date { get; set; }
-        public Day Day { get; set; }
+		[JsonPropertyName("date")]
+		public string Date { get; set; }
+		[JsonPropertyName("day")]
+		public Day Day { get; set; }
     }
 
     public class Day
     {
-        public double MaxTempC { get; set; }
-        public double MinTempC { get; set; }
-        public Condition Condition { get; set; }
+		[JsonPropertyName("maxtemp_c")]
+		public double MaxTempC { get; set; }
+		[JsonPropertyName("mintemp_c")]
+		public double MinTempC { get; set; }
+		[JsonPropertyName("condition")]
+		public Condition Condition { get; set; }
     }
 }
