@@ -1,7 +1,7 @@
 ﻿using SmartHome.Models;
 using SmartHome.Services;
 
-namespace SmartHome.Patterns.State
+namespace SmartHome.Patterns.State.TVStatePatterns
 {
     public class MuteState : ITVState
     {

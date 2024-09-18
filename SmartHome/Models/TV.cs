@@ -1,7 +1,8 @@
 ﻿using SmartHome.Patterns.State;
-using SmartHome.Patterns.Strategy;
+using SmartHome.Patterns.State.TVStatePatterns;
 using SmartHome.Patterns.Visitor;
 using SmartHome.Services;
+using SmartHome.Patterns.Strategy.TVStrategy;
 
 namespace SmartHome.Models
 {
@@ -13,16 +14,17 @@ namespace SmartHome.Models
         public IVolumeStrategy VolumeStrategy { get; set; }
         public string CurrentMode { get; private set; }
         public string CurrentStatus { get; private set; } = "off";
+        private DeviceContext _context;
+
 
         public TV()
         {
-            // Default state can be off
-            State = new OffState();
+            _context = new DeviceContext("TV", new OffState());
         }
 
         public void TurnOn()
         {
-            State = new OnState();
+            _context.Request();
             CurrentStatus = "on";
             State.Handle(this);  // Handle state changes
             Console.WriteLine("TV is On");
@@ -30,7 +32,7 @@ namespace SmartHome.Models
 
         public void TurnOff()
         {
-            State = new OffState();
+            _context.Request();
             CurrentStatus = "off";
             Console.WriteLine("TV is now off.");
         }
@@ -39,6 +41,7 @@ namespace SmartHome.Models
         {
             if (State is OnState)
             {
+                _context.Request();
                 CurrentStatus = "changing-channel";
                 Console.WriteLine("Channel changed");
             }
@@ -52,6 +55,7 @@ namespace SmartHome.Models
         {
             if (State is OnState)
             {
+                _context.Request();
                 CurrentStatus = "increase-volume";
                 Console.WriteLine("Volume increased");
                 VolumeStrategy?.AdjustVolume(this); // Apply volume strategy

@@ -1,13 +1,13 @@
 ﻿using SmartHome.Models;
+using SmartHome.Patterns.Strategy.CoffeeStrategy;
 
-namespace SmartHome.Patterns.Decorator
+namespace SmartHome.Patterns.Decorator.Coffee
 {
-    public class FavoriteSettingsDecorator : CoffeeMachineDecorator
+    public class FavoriteSettingsStrategy : IBrewingStrategy
     {
         private string _favoriteSettings;
 
-        public FavoriteSettingsDecorator(ICoffeeMachine coffeeMachine, string favoriteSettings)
-            : base(coffeeMachine)
+        public FavoriteSettingsStrategy(string favoriteSettings)
         {
             _favoriteSettings = favoriteSettings;
         }
@@ -16,13 +16,11 @@ namespace SmartHome.Patterns.Decorator
         {
             _favoriteSettings = settings;
             Console.WriteLine($"Favorite settings updated: {_favoriteSettings}");
-
         }
 
-        public override void BrewCoffee()
+        public void Brew()
         {
             Console.WriteLine($"Brewing coffee with favorite settings: {_favoriteSettings}");
-            base.BrewCoffee();
         }
     }
 }

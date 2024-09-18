@@ -8,129 +8,137 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
-<div>
-	<h4>Indoor Temperature</h4>
-	<p>@indoorTemperature °C</p>
-</div>
-<div>
-	<h4>Set Location</h4>
-	<input @bind="location" placeholder="Enter location" />
-	<button @onclick="UpdateLocation">Save Location</button>
-</div>
-<div>
+<!-- Voeg de CSS-stijlen toe -->
+<link href="css/style.css" rel="stylesheet">
 
-	<h4>Current Weather</h4>
-	@if (outdoorTemperature != null)
-	{
-		<div>
-			<img src="@outdoorTemperature.Current.Condition.Icon" alt="Weather icon">
-
-			<p>Current Outdoor Temperature: @outdoorTemperature.Current.TempC °C</p>
-			<p>Condition: @outdoorTemperature.Current.Condition.Text</p>
-		</div>
-	}
-	else
-	{
-		<p>Loading...</p>
-	}
+<div class="container">
+    <div class="section">
+        <h4>Indoor Temperature</h4>
+        <p>@indoorTemperature °C</p>
+    </div>
+    <div class="section">
+        <h4>Set Location</h4>
+        <div class="location-input">
+            <input @bind="location" placeholder="Enter location" />
+            <button @onclick="UpdateLocation">Save Location</button>
+        </div>
+    </div>
+    <div class="section">
+        <h4>Current Weather</h4>
+        @if (outdoorTemperature != null)
+        {
+            <div>
+                <img class="weather-icon" src="@outdoorTemperature.Current.Condition.Icon" alt="Weather icon">
+                <p>Current Outdoor Temperature: @outdoorTemperature.Current.TempC °C</p>
+                <p>Condition: @outdoorTemperature.Current.Condition.Text</p>
+            </div>
+        }
+        else
+        {
+            <p>Loading...</p>
+        }
+    </div>
+    <div class="section">
+        <h4>3-Day Forecast</h4>
+        @if (threeDayForecast != null)
+        {
+            <ul>
+                @foreach (var forecast in threeDayForecast)
+                {
+                    var date = DateTime.Parse(forecast.Date);
+                    var dayOfTheWeek = date.DayOfWeek;
+                    <li>
+                        <img class="weather-icon" src="@forecast.Day.Condition.Icon" alt="Weather icon">
+                        <div>
+                            <p>@dayOfTheWeek</p>
+                            <p>@forecast.Date</p>
+                            <p>Min Temperature: @forecast.Day.MinTempC °C  </p>
+                            <p>Max Temperature: @forecast.Day.MaxTempC °C  </p>
+                            <p>  Condition: @forecast.Day.Condition.Text</p>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>Loading...</p>
+        }
+    </div>
 </div>
 
-<div>
-	<h4>3-Day Forecast</h4>
-	@if (threeDayForecast != null)
-	{
-		<ul>
-			@foreach (var forecast in threeDayForecast)
-			{
-@* 				<p>@dayOfTheWeek</p>
- *@				<p>@forecast.Date:</p>
-				<img src="@forecast.Day.Condition.Icon" alt="Weather icon">
-				<p>Min Temperature: @forecast.Day.MinTempC °C</p>
-				<p>Max Temperature: @forecast.Day.MaxTempC °C</p>
-				<p>Condition: @forecast.Day.Condition.Text</p>
-			}
-		</ul>
-	}
-	else
-	{
-		<p>Loading...</p>
-	}
-</div>
 @code {
-	private CurrentWeatherResponse outdoorTemperature;
-	private double indoorTemperature;
-	private List<ForecastDay> threeDayForecast;
-	private ThermostatDisplay _thermostatDisplay;
-	private string dateInput;
-	private DayOfWeek dayOfTheWeek;
+    private CurrentWeatherResponse outdoorTemperature;
+    private double indoorTemperature;
+    private List<ForecastDay> threeDayForecast;
+    private ThermostatDisplay _thermostatDisplay;
+    private string location = "Ghent";
 
-	private string location = "Ghent";
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _thermostatDisplay = new ThermostatDisplay(OnTemperatureUpdate);
 
+            // Register the display with the indoor thermostat
+            IndoorThermostat.RegisterObserver(_thermostatDisplay);
 
-	protected override async Task OnInitializedAsync()
-	{
-		try
-		{
-			var parsedDate = DateTime.Parse(dateInput);
-			var dayOfTheWeek = parsedDate.DayOfWeek;
-			_thermostatDisplay = new ThermostatDisplay(OnTemperatureUpdate);
+            // Load initial data
+            outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync("Ghent");
+            indoorTemperature = IndoorThermostat.GetTemperature();
 
-			// Register the display with the indoor thermostat
-			IndoorThermostat.RegisterObserver(_thermostatDisplay);
+            // Assuming there's a method to register observers for outdoor temperature
+            OutdoorTemperatureService.RegisterObserver(_thermostatDisplay);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
-			// Load initial data
-			outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync("Ghent");
-			indoorTemperature = IndoorThermostat.GetTemperature();
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Load the location from localStorage
+            location = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "location") ?? "Ghent";
+            await LoadWeatherData();
+        }
+    }
 
-			// Assuming there's a method to register observers for outdoor temperature
-			OutdoorTemperatureService.RegisterObserver(_thermostatDisplay);
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex);
-		}
-	}
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
-		{
-			// Load the location from localStorage
-			location = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "location") ?? "Ghent";
-			await LoadWeatherData();
-		}
-	}
-	private async Task LoadWeatherData()
-	{
-		try
-		{
-			outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync(location);
-			var forecastResponse = await OutdoorTemperatureService.Get3DayForecastAsync(location);
-			threeDayForecast = forecastResponse.Forecast.ForecastDay;
-			StateHasChanged();
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex);
-		}
-	}
+    private async Task LoadWeatherData()
+    {
+        try
+        {
+            outdoorTemperature = await OutdoorTemperatureService.GetCurrentWeatherAsync(location);
+            var forecastResponse = await OutdoorTemperatureService.Get3DayForecastAsync(location);
+            threeDayForecast = forecastResponse.Forecast.ForecastDay;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
-	private async Task UpdateLocation()
-	{
-		try
-		{
-			// Save location to localStorage
-			await JSRuntime.InvokeVoidAsync("localStorage.setItem", "location", location);
-			await LoadWeatherData();
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex);
-		}
-	}
-	private void OnTemperatureUpdate(double newTemp)
-	{
-		// Handle the updated temperature here
-		indoorTemperature = newTemp;
-		StateHasChanged(); // Refresh the UI
-	}
+    private async Task UpdateLocation()
+    {
+        try
+        {
+            // Save location to localStorage
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "location", location);
+            await LoadWeatherData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private void OnTemperatureUpdate(double newTemp)
+    {
+        // Handle the updated temperature here
+        indoorTemperature = newTemp;
+        StateHasChanged(); // Refresh the UI
+    }
 }

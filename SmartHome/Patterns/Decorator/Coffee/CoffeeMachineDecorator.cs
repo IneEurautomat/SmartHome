@@ -1,6 +1,7 @@
 ﻿using SmartHome.Models;
+using SmartHome.Patterns.Strategy.CoffeeStrategy;
 
-namespace SmartHome.Patterns.Decorator
+namespace SmartHome.Patterns.Decorator.Coffee
 {
     public class CoffeeMachineDecorator : ICoffeeMachine
     {
@@ -14,6 +15,11 @@ namespace SmartHome.Patterns.Decorator
         public virtual void BrewCoffee()
         {
             _coffeeMachine.BrewCoffee();
+        }
+
+        public void SetBrewingStrategy(IBrewingStrategy strategy)
+        {
+            _coffeeMachine.SetBrewingStrategy(strategy);
         }
     }
 }

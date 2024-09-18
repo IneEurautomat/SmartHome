@@ -1,6 +1,6 @@
 ﻿using SmartHome.Models;
 
-namespace SmartHome.Patterns.Strategy
+namespace SmartHome.Patterns.Strategy.TVStrategy
 {
     //STRATEGY 
     //-------------------------------------------------------------------

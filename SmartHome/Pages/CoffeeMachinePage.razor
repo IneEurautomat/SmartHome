@@ -2,38 +2,57 @@
 @using SmartHome.Models
 @using SmartHome.Patterns.Builder
 @using SmartHome.Patterns.Decorator
+@using SmartHome.Patterns.Decorator.Coffee
+@using SmartHome.Patterns.Strategy.CoffeeStrategy
 @inject IJSRuntime JSRuntime
 
 <h3>Smart Coffee Machine</h3>
 
 <div>
-    <label>Coffee Type:</label>
-    <select value="@selectedCoffeeType" @onchange="UpdateSelectedCoffeeType">
-        <option value="Espresso">Espresso</option>
-        <option value="Latte">Latte</option>
-        <option value="Cappuccino">Cappuccino</option>
-        <option value="Americano">Americano</option>
-    </select>
+	<label>Coffee Type:</label>
+	<select value="@selectedCoffeeType" @onchange="UpdateSelectedCoffeeType">
+		<option value="Espresso">Espresso</option>
+		<option value="Latte">Latte</option>
+		<option value="Cappuccino">Cappuccino</option>
+		<option value="Americano">Americano</option>
+	</select>
 </div>
 
 <div>
-    <label>Strength:</label>
-    <select value="@selectedStrength" @onchange="UpdateSelectedStrength">
-        <option value="Mild">Mild</option>
-        <option value="Medium">Medium</option>
-        <option value="Strong">Strong</option>
-    </select>
+	<label>Strength:</label>
+	<select value="@selectedStrength" @onchange="UpdateSelectedStrength">
+		<option value="Mild">Mild</option>
+		<option value="Medium">Medium</option>
+		<option value="Strong">Strong</option>
+	</select>
 </div>
 
 <div>
-    <label>Water Amount (ml):</label>
-    <input type="number" value="@selectedWaterAmount" @onchange="UpdateSelectedWaterAmount" min="30" max="500" />
+	<label>Water Amount (ml):</label>
+	<input type="number" value="@selectedWaterAmount" @onchange="UpdateSelectedWaterAmount" min="30" max="500" />
+</div>
+
+
+<div>
+	<label>Milk:</label>
+	<input type="checkbox" @onchange="UpdateSelectedMilkSelection" checked="@useMilk" />
 </div>
 
 <div>
-    <button @onclick="BuildAndBrewCoffee">Brew Coffee</button>
-    <button @onclick="SetFavoriteSettings">Set Favorite Settings</button>
-    <button @onclick="EnableSelfCleaning">Enable Self-Cleaning</button>
+	<label>Sugar:</label>
+	<input type="checkbox" @onchange="UpdateSelectedSugarSelection" checked="@useSugar" />
+</div>
+
+<div>
+	<label>Decaf:</label>
+	<input type="checkbox" @onchange="UpdateSelectedDecafSelection" checked="@isDecaf" />
+</div>
+
+
+<div>
+	<button @onclick="BuildAndBrewCoffee">Brew Coffee</button>
+	<button @onclick="SetFavoriteSettings">Set Favorite Settings</button>
+	<button @onclick="EnableSelfCleaning">Enable Self-Cleaning</button>
 </div>
 
 <p>@message</p>
@@ -41,118 +60,212 @@
 <!-- Coffee Image Display -->
 @if (!string.IsNullOrEmpty(selectedCoffeeImage))
 {
-    <div>
-        <img src="@selectedCoffeeImage" alt="@selectedCoffeeType" style="width:400px;height:400px;" />
-    </div>
+	<div>
+		<img src="@selectedCoffeeImage" alt="@selectedCoffeeType" style="width:400px;height:400px;" />
+	</div>
 }
 
 @code {
-    private string message = "Ready to brew coffee!";
-    private ICoffeeMachine coffeeMachine;
+	private string message = "Ready to brew coffee!";
+	private ICoffeeMachine coffeeMachine;
+	private IBrewingStrategy brewingStrategy;
+	private FavoriteSettingsStrategy favoriteSettingsStrategy;
 
-    // Properties to bind user inputs
-    private string selectedCoffeeType = "Espresso";
-    private string selectedStrength = "Medium";
-    private int selectedWaterAmount = 50;
-    private string selectedCoffeeImage;
+	// Properties to bind user inputs
+	private string selectedCoffeeType = "Espresso";
+	private string selectedStrength = "Medium";
+	private int selectedWaterAmount = 50;
+	private string selectedCoffeeImage = "images/coffeemachine/coffeemachine.png";
 
-    // Dictionary to map coffee types to images
-    private Dictionary<string, string> coffeeImages = new Dictionary<string, string>
-    {
-        { "Espresso", "images/coffeemachine/espresso.png" },
-        { "Latte", "images/coffeemachine/latte.png" },
-        { "Cappuccino", "images/coffeemachine/cappuccino.png" },
-        { "Americano", "images/coffeemachine/americano.png" }
-    };
+	private bool useMilk;
+	private bool useSugar;
+	private bool isDecaf;
 
-    protected override void OnInitialized()
-    {
-        // Initialize the selected coffee image
-        selectedCoffeeImage = coffeeImages[selectedCoffeeType];
-    }
+	private bool enableFavoriteSettings;
+	private bool enableSelfCleaning;
 
-    private void UpdateSelectedCoffeeType(ChangeEventArgs e)
-    {
-        selectedCoffeeType = e.Value.ToString();
-        UpdateCoffeeImage();
-    }
+	// Dictionary to map coffee types to images
+	private Dictionary<string, string> coffeeImages = new Dictionary<string, string>
+	{
+		{ "Espresso", "images/coffeemachine/espresso.png" },
+		{ "Latte", "images/coffeemachine/latte.png" },
+		{ "Cappuccino", "images/coffeemachine/cappuccino.png" },
+		{ "Americano", "images/coffeemachine/americano.png" }
+	};
 
-    private void UpdateSelectedStrength(ChangeEventArgs e)
-    {
-        selectedStrength = e.Value.ToString();
-    }
+	protected override void OnInitialized()
+	{
+		// Initialize the selected coffee image
+		selectedCoffeeImage = "images/coffeemachine/coffeemachine.png";
+	}
 
-    private void UpdateSelectedWaterAmount(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value.ToString(), out int amount))
-        {
-            selectedWaterAmount = amount;
-        }
-    }
+	private void UpdateSelectedCoffeeType(ChangeEventArgs e)
+	{
+		selectedCoffeeType = e.Value.ToString();
+		selectedCoffeeImage = "images/coffeemachine/coffeemachine.png";
+	}
+	private void UpdateSelectedStrength(ChangeEventArgs e)
+	{
+		selectedStrength = e.Value.ToString();
+	}
 
-    private void UpdateCoffeeImage()
-    {
-        selectedCoffeeImage = coffeeImages[selectedCoffeeType];
-    }
+	private void UpdateSelectedWaterAmount(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value.ToString(), out int amount))
+		{
+			selectedWaterAmount = amount;
+		}
+	}
+	private void UpdateSelectedMilkSelection(ChangeEventArgs e)
+	{
+		useMilk = (bool)e.Value;
+	}
+	private void UpdateSelectedSugarSelection(ChangeEventArgs e)
+	{
+		useSugar = (bool)e.Value;
+	}
+	private void UpdateSelectedDecafSelection(ChangeEventArgs e)
+	{
+		isDecaf = (bool)e.Value;
 
-    private void BuildAndBrewCoffee()
-    {
-        // Build the coffee machine based on user input
-        var builder = new CoffeeMachineBuilder();
-        var basicMachine = builder.SetCoffeeType(selectedCoffeeType)
-                                  .SetStrength(selectedStrength)
-                                  .SetWaterAmount(selectedWaterAmount)
-                                  .Build();
+	}
+	private void UpdateCoffeeImage()
+	{
+		if (coffeeImages.TryGetValue(selectedCoffeeType, out var image))
+		{
+			selectedCoffeeImage = image;
+		}
+	}
 
-        // Apply decorators
-        var favoriteMachine = new FavoriteSettingsDecorator(basicMachine, $"{selectedCoffeeType}, {selectedStrength}, {selectedWaterAmount}ml");
-        coffeeMachine = new SelfCleaningDecorator(favoriteMachine);
+	private async Task BuildAndBrewCoffee()
+	{
+		// Build the coffee machine based on user input
+		var builder = new CoffeeMachineBuilder();
+		var basicMachine = builder.SetCoffeeType(selectedCoffeeType)
+										.SetStrength(selectedStrength)
+										.SetWaterAmount(selectedWaterAmount)
+										.AddMilk(useMilk)
+										.AddSugar(useSugar)
+										.SetDecaf(isDecaf)
+										.Build();
 
-        // Brew coffee
-        coffeeMachine.BrewCoffee();
-        message = "Coffee is brewing...";
-    }
+		// Apply decorators
+		ICoffeeMachine decoratedMachine = basicMachine;
 
-    private bool TryGetFavoriteSettingsDecorator(ICoffeeMachine machine, out FavoriteSettingsDecorator favoriteDecorator)
-    {
-        if (machine is FavoriteSettingsDecorator decorator)
-        {
-            favoriteDecorator = decorator;
-            return true;
-        }
+		// Apply additional decorators
+		if (useMilk)
+		{
+			decoratedMachine = new MilkDecorator(decoratedMachine);
+		}
 
-        if (machine is CoffeeMachineDecorator decoratorBase)
-        {
-            return TryGetFavoriteSettingsDecorator(decoratorBase._coffeeMachine, out favoriteDecorator);
-        }
+		if (useSugar)
+		{
+			decoratedMachine = new SugarDecorator(decoratedMachine);
+		}
 
-        favoriteDecorator = null;
-        return false;
-    }
+		coffeeMachine = decoratedMachine;
 
-    private void SetFavoriteSettings()
-    {
-        if (TryGetFavoriteSettingsDecorator(coffeeMachine, out var favoriteDecorator))
-        {
-            favoriteDecorator.SetFavoriteSettings($"{selectedCoffeeType}, {selectedStrength}, {selectedWaterAmount}ml");
-            message = "Favorite settings updated.";
-        }
-        else
-        {
-            message = "Cannot update favorite settings.";
-        }
-    }
+		// Apply strategies
+		switch (selectedCoffeeType)
+		{
+			case "Espresso":
+				brewingStrategy = new EspressoBrewingStrategy();
+				break;
+			case "Latte":
+				brewingStrategy = new LatteBrewingStrategy();
+				break;
+			case "Cappuccino":
+				brewingStrategy = new CappuccinoBrewingStrategy();
+				break;
+			case "Americano":
+				brewingStrategy = new AmericanoBrewingStrategy();
+				break;
+			default:
+				brewingStrategy = new DefaultBrewingStrategy();
+				break;
+		}
 
-    private void EnableSelfCleaning()
-    {
-        if (coffeeMachine is SelfCleaningDecorator selfCleaningDecorator)
-        {
-            selfCleaningDecorator.Clean();
-            message = "Self-cleaning is enabled.";
-        }
-        else
-        {
-            message = "Self-cleaning not available.";
-        }
-    }
+		coffeeMachine.SetBrewingStrategy(brewingStrategy);
+
+
+		// Show brewing image
+		selectedCoffeeImage = "images/coffeemachine/coffee.gif";
+		message = "Coffee is brewing...";
+
+		// Simulate brewing time
+		await Task.Delay(5000); // Simulating a 5 seconds brewing time
+
+		// Brew coffee
+		coffeeMachine.BrewCoffee();
+
+		// Update to the final coffee image
+		UpdateCoffeeImage();
+		message = "Coffee is ready!";
+	}
+
+	private async Task SetFavoriteSettings()
+	{
+		// Build the coffee machine based on user input
+		var builder = new CoffeeMachineBuilder();
+		var basicMachine = builder.SetCoffeeType(selectedCoffeeType)
+										.SetStrength(selectedStrength)
+										.SetWaterAmount(selectedWaterAmount)
+										.AddMilk(useMilk)
+										.AddSugar(useSugar)
+										.SetDecaf(isDecaf)
+										.Build();
+
+		// Apply decorators
+		ICoffeeMachine decoratedMachine = basicMachine;
+
+		// Apply additional decorators
+		if (useMilk)
+		{
+			decoratedMachine = new MilkDecorator(decoratedMachine);
+		}
+
+		if (useSugar)
+		{
+			decoratedMachine = new SugarDecorator(decoratedMachine);
+		}
+
+		coffeeMachine = decoratedMachine;
+
+		// Update the favorite settings strategy
+		favoriteSettingsStrategy = new FavoriteSettingsStrategy($"{selectedCoffeeType}, {selectedStrength}, {selectedWaterAmount}ml");
+
+		if (coffeeMachine != null)
+		{
+			coffeeMachine.SetBrewingStrategy(favoriteSettingsStrategy);
+			await Task.Delay(5000); // Simulating a 5 seconds brewing time
+
+			// Brew coffee
+			coffeeMachine.BrewCoffee();
+
+			// Update to the final coffee image
+			UpdateCoffeeImage();
+
+			message = "Favorite settings applied and coffee is brewing...";
+			selectedCoffeeImage = "images/coffeemachine/coffee.gif"; // Set brewing image
+		}
+		else
+		{
+			message = "Cannot update favorite settings. No coffee machine is set.";
+		}
+	}
+
+	private void EnableSelfCleaning()
+	{
+		if (coffeeMachine != null)
+		{
+			var selfCleaningStrategy = new SelfCleaningStrategy();
+			coffeeMachine.SetBrewingStrategy(selfCleaningStrategy);
+			selfCleaningStrategy.Clean();
+			message = "Self-cleaning is enabled.";
+		}
+		else
+		{
+			message = "Self-cleaning not available. No coffee machine is set.";
+		}
+	}
 }
